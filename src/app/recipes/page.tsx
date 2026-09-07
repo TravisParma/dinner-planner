@@ -14,9 +14,9 @@ function parseTags(tags: string | null): string[] {
 export default async function RecipesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string; skill?: string }>;
+  searchParams: Promise<{ sort?: string; skill?: string; cuisine?: string; q?: string }>;
 }) {
-  const { sort, skill } = await searchParams;
+  const { sort, skill, cuisine, q } = await searchParams;
   const sortKey: SortKey =
     sort === "rating" || sort === "lastMade" || sort === "cuisine" ? sort : "title";
 
@@ -24,12 +24,32 @@ export default async function RecipesPage({
     include: { ingredients: true },
   });
 
+  const keyword = q?.trim().toLowerCase();
   const skillFilter = skill?.trim().toLowerCase();
-  const filtered = skillFilter
-    ? recipes.filter((r) =>
-        parseTags(r.skillTags).some((t) => t.toLowerCase().includes(skillFilter))
-      )
-    : recipes;
+  const cuisineFilter = cuisine?.trim().toLowerCase();
+
+  const filtered = recipes.filter((r) => {
+    if (
+      keyword &&
+      !r.title.toLowerCase().includes(keyword) &&
+      !r.ingredients.some((i) => i.name.toLowerCase().includes(keyword))
+    ) {
+      return false;
+    }
+    if (
+      skillFilter &&
+      !parseTags(r.skillTags).some((t) => t.toLowerCase().includes(skillFilter))
+    ) {
+      return false;
+    }
+    if (
+      cuisineFilter &&
+      !parseTags(r.cuisineTags).some((t) => t.toLowerCase().includes(cuisineFilter))
+    ) {
+      return false;
+    }
+    return true;
+  });
 
   const sorted = [...filtered].sort((a, b) => {
     switch (sortKey) {
@@ -65,6 +85,30 @@ export default async function RecipesPage({
       </div>
 
       <form className="flex flex-wrap items-end gap-3 text-sm" method="get">
+        <div className="flex flex-col gap-1">
+          <label htmlFor="q" className="font-medium">
+            Search
+          </label>
+          <input
+            id="q"
+            name="q"
+            defaultValue={q ?? ""}
+            placeholder="Title or ingredient"
+            className="rounded border border-zinc-300 px-2 py-1"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="cuisine" className="font-medium">
+            Filter by cuisine/diet tag
+          </label>
+          <input
+            id="cuisine"
+            name="cuisine"
+            defaultValue={cuisine ?? ""}
+            placeholder="mexican"
+            className="rounded border border-zinc-300 px-2 py-1"
+          />
+        </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="sort" className="font-medium">
             Sort by
@@ -103,10 +147,16 @@ export default async function RecipesPage({
 
       {sorted.length === 0 ? (
         <p className="text-zinc-500">
-          No recipes yet.{" "}
-          <Link href="/recipes/new" className="text-blue-600 hover:underline">
-            Add your first one.
-          </Link>
+          {recipes.length === 0 ? (
+            <>
+              No recipes yet.{" "}
+              <Link href="/recipes/new" className="text-blue-600 hover:underline">
+                Add your first one.
+              </Link>
+            </>
+          ) : (
+            "No recipes match your search/filters."
+          )}
         </p>
       ) : (
         <ul className="flex flex-col divide-y divide-zinc-200 rounded border border-zinc-200 bg-white">
@@ -130,8 +180,16 @@ export default async function RecipesPage({
                 <div className="flex flex-wrap gap-1 text-xs text-zinc-500">
                   {parseTags(recipe.skillTags).map((tag) => (
                     <span
-                      key={tag}
+                      key={`skill-${tag}`}
                       className="rounded-full bg-zinc-100 px-2 py-0.5"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                  {parseTags(recipe.cuisineTags).map((tag) => (
+                    <span
+                      key={`cuisine-${tag}`}
+                      className="rounded-full bg-blue-50 px-2 py-0.5 text-blue-700"
                     >
                       {tag}
                     </span>

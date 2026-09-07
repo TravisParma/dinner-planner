@@ -23,6 +23,7 @@ model Recipe {
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
   ingredients      Ingredient[]
+  plannedMeals     PlannedMeal[]
 }
 
 model Ingredient {
@@ -33,4 +34,30 @@ model Ingredient {
   quantity String?
   unit     String?
   position Int     @default(0)
+}
+
+model PlannedMeal {
+  id        String   @id @default(cuid())
+  date      DateTime @unique
+  recipeId  String
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// One row per grocery-list item within a date range (see docs/spec.md "Grocery List" section
+// for how this pairs with freshly-recomputed ingredient aggregation on every render).
+model GroceryListItem {
+  id         String   @id @default(cuid())
+  rangeStart String
+  rangeEnd   String
+  itemKey    String? // set for items derived from recipes; null for manually-added items
+  name       String
+  quantity   String?
+  unit       String?
+  checked    Boolean  @default(false)
+  removed    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@unique([rangeStart, rangeEnd, itemKey])
 }
