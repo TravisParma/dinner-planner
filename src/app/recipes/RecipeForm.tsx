@@ -30,19 +30,24 @@ export const emptyRecipeForm: RecipeFormValues = {
   ingredients: [{ ...emptyRow }],
 };
 
+export type LibraryIngredient = { id: string; name: string; defaultUnit: string | null };
+
 export default function RecipeForm({
   action,
   initial = emptyRecipeForm,
   submitLabel = "Save Recipe",
+  libraryItems = [],
 }: {
   action: (formData: FormData) => void | Promise<void>;
   initial?: RecipeFormValues;
   submitLabel?: string;
+  libraryItems?: LibraryIngredient[];
 }) {
   const [ingredients, setIngredients] = useState<IngredientRow[]>(
     initial.ingredients.length ? initial.ingredients : [{ ...emptyRow }]
   );
   const [error, setError] = useState<string | null>(null);
+  const [libraryPick, setLibraryPick] = useState("");
 
   function updateIngredient(index: number, field: keyof IngredientRow, value: string) {
     setIngredients((rows) =>
@@ -52,6 +57,16 @@ export default function RecipeForm({
 
   function addIngredient() {
     setIngredients((rows) => [...rows, { ...emptyRow }]);
+  }
+
+  function addFromLibrary(name: string) {
+    const item = libraryItems.find((i) => i.name === name);
+    if (!item) return;
+    setIngredients((rows) => {
+      const base = rows.length === 1 && rows[0].name === "" ? [] : rows;
+      return [...base, { name: item.name, quantity: "", unit: item.defaultUnit ?? "" }];
+    });
+    setLibraryPick("");
   }
 
   function removeIngredient(index: number) {
@@ -90,6 +105,44 @@ export default function RecipeForm({
 
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium">Ingredients *</span>
+
+        {libraryItems.length > 0 && (
+          <div className="flex flex-col gap-1">
+            <label htmlFor="libraryPick" className="text-xs font-medium text-zinc-600">
+              Add from ingredient library
+            </label>
+            <div className="flex gap-2">
+              <input
+                id="libraryPick"
+                list="ingredient-library-options"
+                value={libraryPick}
+                onChange={(e) => setLibraryPick(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addFromLibrary(libraryPick);
+                  }
+                }}
+                placeholder="Start typing an ingredient..."
+                className="flex-1 min-w-0 rounded border border-zinc-300 px-3 py-2"
+              />
+              <datalist id="ingredient-library-options">
+                {libraryItems.map((item) => (
+                  <option key={item.id} value={item.name} />
+                ))}
+              </datalist>
+              <button
+                type="button"
+                onClick={() => addFromLibrary(libraryPick)}
+                disabled={!libraryItems.some((i) => i.name === libraryPick)}
+                className="shrink-0 rounded border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-50 disabled:opacity-40"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-col gap-2">
           {ingredients.map((row, index) => (
             <div key={index} className="flex gap-2">

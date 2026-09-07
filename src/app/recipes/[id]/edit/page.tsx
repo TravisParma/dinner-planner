@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import RecipeForm from "../../RecipeForm";
-import { updateRecipe } from "../../actions";
+import { updateRecipe, getIngredientLibrary } from "../../actions";
 
 export default async function EditRecipePage({
   params,
@@ -9,10 +9,13 @@ export default async function EditRecipePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const recipe = await prisma.recipe.findUnique({
-    where: { id },
-    include: { ingredients: { orderBy: { position: "asc" } } },
-  });
+  const [recipe, libraryItems] = await Promise.all([
+    prisma.recipe.findUnique({
+      where: { id },
+      include: { ingredients: { orderBy: { position: "asc" } } },
+    }),
+    getIngredientLibrary(),
+  ]);
 
   if (!recipe) notFound();
 
@@ -24,6 +27,7 @@ export default async function EditRecipePage({
       <RecipeForm
         action={boundUpdate}
         submitLabel="Save Changes"
+        libraryItems={libraryItems}
         initial={{
           title: recipe.title,
           sourceUrl: recipe.sourceUrl ?? "",

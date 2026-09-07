@@ -55,6 +55,12 @@ Ingredient
   unit      String?
   position  Int       // display order within the recipe
 
+IngredientLibraryItem
+  id          String   @id @default(cuid())
+  name        String   @unique
+  defaultUnit String?
+  createdAt   DateTime
+
 PlannedMeal
   id        String   @id @default(cuid())
   date      DateTime @unique   // calendar day, normalized to UTC midnight — see §4
@@ -77,7 +83,7 @@ GroceryListItem
 
 **Deliberate simplifications (matches vision doc's non-goals, §4):**
 - Tags (`skillTags`, `cuisineTags`) are plain comma-separated strings, not a normalized tag table. Filtering/sorting on them happens in application code after fetch (fine at personal-library scale). Revisit only if tag volume or cross-recipe tag management becomes a real need.
-- No `Ingredient` master table — ingredients are structured fields *on* a recipe only, per vision doc's "Standalone Ingredient Library" non-goal.
+- `IngredientLibraryItem` is a lightweight lookup list, not a managed entity — it partially resolves the vision doc's "Standalone Ingredient Library" non-goal (§4), but deliberately stays minimal: there's no FK from `Ingredient` to it (picking from the library just copies `name`/`unit` into a new `Ingredient` row) and no UI to rename/delete library entries. It only grows: every ingredient name saved on any recipe is auto-upserted into it (case-sensitive exact match on `name`), so it can accumulate near-duplicates (e.g. "onion" vs "onion, chopped") over time. Revisit with a management page if that becomes annoying.
 - No units-of-measure normalization or conversion — `quantity`/`unit` are free-text strings.
 - `PlannedMeal` is one row per calendar day (`date` is `@unique`), holding exactly one recipe. There's no "meal slot" concept (breakfast/lunch/dinner) — this app is dinner-only per the vision doc's scope, so a day maps to a single planned recipe. Assigning a new recipe to an already-planned day upserts (replaces) rather than adding a second row.
 - `GroceryListItem` stores only *interaction state* (checked/removed) for recipe-derived items, keyed by `(rangeStart, rangeEnd, itemKey)` — it does **not** store the computed quantity/name/unit as the source of truth for those; that's always recomputed fresh from the current plan on every render (see §4). The `name`/`quantity`/`unit` columns on a generated-item row only exist so the DB is legible when inspected directly; they're not read back for display. Manual items (`itemKey: null`) are the opposite — those columns *are* the source of truth, since there's no recipe data to recompute them from. SQLite treats multiple `NULL`s as distinct under a unique index, so any number of manual items can coexist per range without conflicting with the `@@unique` constraint.
@@ -95,9 +101,15 @@ GroceryListItem
 | `/planner` | Dinner Planner — `?start=YYYY-MM-DD&days=1-7` (defaults: today, 7) picks the visible date range; each day shows its assigned recipe (or an assign form) |
 | `/grocery-list` | Grocery List — same `?start=&days=` convention as `/planner`; interactive checklist derived from that range's planned meals, plus manually-added items |
 
-Server actions in [`src/app/recipes/actions.ts`](../src/app/recipes/actions.ts): `createRecipe`, `updateRecipe`, `deleteRecipe`, `rateRecipe`, `toggleMakeAgain`, `markMadeToday`, `extractRecipeFromUrl`. All revalidate the relevant paths and redirect where appropriate (`extractRecipeFromUrl` just returns parsed data — no DB write).
+Server actions in [`src/app/recipes/actions.ts`](../src/app/recipes/actions.ts): `createRecipe`, `updateRecipe`, `deleteRecipe`, `rateRecipe`, `toggleMakeAgain`, `markMadeToday`, `extractRecipeFromUrl`, `getIngredientLibrary`. All revalidate the relevant paths and redirect where appropriate (`extractRecipeFromUrl` and `getIngredientLibrary` just return data — no DB write).
 
 Ingredients are passed from the client form to the server action as a JSON string in a hidden `ingredientsJson` field (see `RecipeForm.tsx`) rather than as repeated indexed form fields — simplest way to submit a dynamic-length list through a native form POST to a Server Action.
+
+### Ingredient library picker
+
+`RecipeForm.tsx` (used by `/recipes/new`, `/recipes/[id]/edit`, and `/recipes/import`) takes an optional `libraryItems` prop — `{id, name, defaultUnit}[]` fetched via `getIngredientLibrary()` — and renders an "Add from ingredient library" combobox (native `<input list>` + `<datalist>`, no extra dependency) above the ingredient rows. Picking a name appends a new ingredient row pre-filled with that item's `name` and `defaultUnit`; quantity is always left blank for the user to fill in. The free-text "+ Add ingredient" row is unchanged and still works for one-off items.
+
+`createRecipe`/`updateRecipe` upsert every saved ingredient's `name` into `IngredientLibraryItem` (keeping the first-seen `unit` as `defaultUnit`), so the library grows automatically from normal recipe entry — no separate "manage ingredients" step exists. The two server-component pages (`new`, `[id]/edit`) fetch the library directly via Prisma; the client-component import page fetches it by calling the `getIngredientLibrary` server action from a `useEffect` on mount.
 
 ### Recipe Finder
 

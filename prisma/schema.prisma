@@ -36,6 +36,17 @@ model Ingredient {
   position Int     @default(0)
 }
 
+// Lookup list of previously-used ingredient names, for the "pick from library"
+// row in RecipeForm. Not a managed entity: rows are copied into Ingredient on
+// pick (name/unit only, no FK) and new names typed on a recipe auto-register
+// here. See docs/spec.md §3.
+model IngredientLibraryItem {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  defaultUnit String?
+  createdAt   DateTime @default(now())
+}
+
 model PlannedMeal {
   id        String   @id @default(cuid())
   date      DateTime @unique

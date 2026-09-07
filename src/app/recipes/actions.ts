@@ -59,6 +59,23 @@ function recipeDataFromForm(formData: FormData) {
   };
 }
 
+async function registerIngredientsInLibrary(ingredients: IngredientInput[]) {
+  for (const ing of ingredients) {
+    await prisma.ingredientLibraryItem.upsert({
+      where: { name: ing.name },
+      update: {},
+      create: { name: ing.name, defaultUnit: ing.unit ?? null },
+    });
+  }
+}
+
+export async function getIngredientLibrary() {
+  return prisma.ingredientLibraryItem.findMany({
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, defaultUnit: true },
+  });
+}
+
 export async function createRecipe(formData: FormData) {
   const { ingredients, ...data } = recipeDataFromForm(formData);
 
@@ -70,6 +87,7 @@ export async function createRecipe(formData: FormData) {
       },
     },
   });
+  await registerIngredientsInLibrary(ingredients);
 
   revalidatePath("/recipes");
   redirect(`/recipes/${recipe.id}`);
@@ -88,6 +106,7 @@ export async function updateRecipe(id: string, formData: FormData) {
       },
     },
   });
+  await registerIngredientsInLibrary(ingredients);
 
   revalidatePath("/recipes");
   revalidatePath(`/recipes/${id}`);

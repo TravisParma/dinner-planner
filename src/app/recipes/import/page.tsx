@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import RecipeForm, { type RecipeFormValues } from "../RecipeForm";
-import { createRecipe, extractRecipeFromUrl } from "../actions";
+import { useEffect, useState, useTransition } from "react";
+import RecipeForm, { type LibraryIngredient, type RecipeFormValues } from "../RecipeForm";
+import { createRecipe, extractRecipeFromUrl, getIngredientLibrary } from "../actions";
 
 export default function ImportRecipePage() {
   const [url, setUrl] = useState("");
@@ -10,6 +10,11 @@ export default function ImportRecipePage() {
   const [importKey, setImportKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [libraryItems, setLibraryItems] = useState<LibraryIngredient[]>([]);
+
+  useEffect(() => {
+    getIngredientLibrary().then(setLibraryItems);
+  }, []);
 
   function handleFetch() {
     setError(null);
@@ -81,6 +86,7 @@ export default function ImportRecipePage() {
             action={createRecipe}
             initial={imported}
             submitLabel="Save Recipe"
+            libraryItems={libraryItems}
           />
         </>
       )}
