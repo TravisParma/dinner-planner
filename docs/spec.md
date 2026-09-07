@@ -22,9 +22,10 @@
 - **Database:** SQLite via Prisma ORM
   - Prisma pinned to **6.19.3** (both `prisma` and `@prisma/client`) — deliberately not on 7.x. Prisma 7 moved the datasource `url` out of `schema.prisma` and into a `prisma.config.ts` + driver-adapter model; that's unnecessary complexity for a single-user SQLite app, so we stayed on the last version with classic `datasource { url = env(...) }` config. Do not upgrade past 6.x without re-evaluating this tradeoff.
   - Local DB file: `prisma/dev.db` (gitignored). Connection string in `.env` (gitignored): `DATABASE_URL="file:./dev.db"`.
-- **Auth:** none yet (single-user, no login implemented). Vision doc calls for "basic account/login" eventually (§5) — not built.
+- **Auth:** HTTP Basic Auth via `src/middleware.ts`, gating every route except `_next/*` (includes the dev-mode HMR websocket, not just static/image assets) and `favicon.ico`. Single shared username/password pair from `BASIC_AUTH_USER`/`BASIC_AUTH_PASSWORD` env vars — not per-user accounts, no login UI or session/cookie. Fails closed: if either env var is unset, every request gets a `500` rather than passing through unauthenticated. Credential comparison uses a manual constant-time byte compare (not `===`) since this is the only auth layer. Vision doc's eventual "basic account/login" (§5) is still open — this is a stopgap for internet-exposed hosting, not that feature.
 - **Mutations:** Next.js Server Actions (`"use server"` functions in `actions.ts` files), no separate REST/API routes.
 - **Dev server / preview:** `.claude/launch.json` runs `npm run dev` on port 3000 for the Claude Code browser preview tool.
+- **Deployment:** Dockerized for self-hosting (e.g. home lab) via `Dockerfile` + `docker-compose.yml`. `next.config.ts` sets `output: "standalone"` so the production image ships only the traced `node_modules` instead of a full install. Base image is `node:20-bookworm-slim` (not Alpine) in every build stage specifically so Prisma's default `binaryTargets = ["native"]` resolves consistently against glibc — mixing glibc/musl across build and runtime stages breaks Prisma's engine binary at runtime. `docker-entrypoint.sh` runs `prisma migrate deploy` against a volume-mounted SQLite file before starting `node server.js`, so migrations apply to the persisted database on every container start rather than being baked into the image. See §8.
 
 ## 3. Data model
 
@@ -156,7 +157,7 @@ Per product decision: **only `title` and at least one ingredient (with a name) a
 
 ## 6. Known gaps / deferred (intentional, not bugs)
 
-- No authentication — single browser/device use for now.
+- No real accounts/login — HTTP Basic Auth (single shared username/password via env vars, see §2 and §8) gates access for internet-exposed hosting, but there's no per-user identity, session, or login UI.
 - Grocery List: flat/alphabetical only (no store-section grouping) and no "already have" exclusion — both deliberate v1 defaults, see the "Grocery List" subsection in §4.
 
 ## 7. Conventions for this codebase
@@ -166,6 +167,18 @@ Per product decision: **only `title` and at least one ingredient (with a name) a
 - `params` and `searchParams` are `Promise`s in this Next.js version — always `await` them in page components.
 - If a Client Component initializes local state from a prop and that prop can change after mount (e.g. after a sibling/parent Server Component revalidates), don't sync it with `useEffect(() => setState(prop), [prop])` — this repo's lint config (`react-hooks/set-state-in-effect`) flags that as an anti-pattern. Force a remount instead by giving the component a `key` derived from the data that should invalidate it (see `GroceryChecklist` in the Grocery List section of §4 for a worked example).
 - Keep `docs/food-planner-product-vision.md` as the source of truth for *what* to build and *why*; this file (`docs/spec.md`) tracks *what has been built* and *how*.
+- `src/middleware.ts` implements the app-wide Basic Auth gate (§2, §8). Any new route is protected automatically by its matcher — don't add a parallel auth check per-route, and don't narrow the matcher without a specific reason (it's deliberately "everything except static assets").
+
+## 8. Deployment (Docker / home lab)
+
+Files: [`Dockerfile`](../Dockerfile), [`docker-compose.yml`](../docker-compose.yml), [`docker-entrypoint.sh`](../docker-entrypoint.sh), [`.dockerignore`](../.dockerignore).
+
+- **Build:** multi-stage (`deps` → `builder` → `runner`), all stages on `node:20-bookworm-slim`. `builder` runs `prisma generate` then `npm run build` (standalone output, see §2). `runner` installs `openssl` (required for Prisma's engine to link against; not present on slim by default), copies `.next/standalone`, `.next/static`, and `public/` (the latter two aren't included in standalone tracing and must be copied explicitly), copies `prisma/schema.prisma` + `prisma/migrations/`, and explicitly copies the Prisma CLI (`node_modules/.bin/prisma`, `node_modules/prisma`, `node_modules/@prisma`) since nothing in app code imports the CLI so Next's build tracing wouldn't otherwise include it — but it's needed at container startup to run migrations. Runs as a non-root `nextjs` user.
+- **Startup:** `docker-entrypoint.sh` runs `prisma migrate deploy` (applies existing migrations only, non-interactive — never `migrate dev` in a container) against the `DATABASE_URL` from env, then `exec node server.js` (not `npm start`, so Node is PID 1 and receives `SIGTERM` directly for clean shutdown on `docker compose down`/restart).
+- **Persistence:** `docker-compose.yml` mounts a named volume (`dinner-planner-data`) at `/data` inside the container, with `DATABASE_URL=file:/data/dev.db` — the SQLite file lives on the volume, not inside the image/container filesystem, so it survives `docker compose down && up` and image rebuilds.
+- **Auth env vars:** `BASIC_AUTH_USER` / `BASIC_AUTH_PASSWORD`, read by `src/middleware.ts` (§2). Set via a `.env` file next to `docker-compose.yml` (gitignored, not committed) — compose auto-loads it.
+- **Networking:** the compose file publishes a plain host port (`3000:3000`) and does not assume any particular reverse proxy (no Traefik labels) — it's written for a setup where an existing reverse proxy (e.g. Nginx Proxy Manager, Caddy) sits in front and is configured separately. A commented-out `networks:` block shows how to instead attach this service to an external Docker network if the proxy itself runs as a container.
+- **No multi-arch build** — targets x86_64/amd64 only; revisit the base image / build if ARM hosting (e.g. Raspberry Pi) is ever needed.
 
 ---
 

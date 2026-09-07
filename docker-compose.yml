@@ -1,0 +1,29 @@
+services:
+  dinner-planner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dinner-planner:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "file:/data/dev.db"
+      BASIC_AUTH_USER: "${BASIC_AUTH_USER}"
+      BASIC_AUTH_PASSWORD: "${BASIC_AUTH_PASSWORD}"
+    volumes:
+      - dinner-planner-data:/data
+    # Uncomment if your reverse proxy runs as a Docker container and this
+    # service should join its network instead of / in addition to the
+    # published port above:
+    # networks:
+    #   - proxy
+    #   - default
+
+volumes:
+  dinner-planner-data:
+
+# networks:
+#   proxy:
+#     external: true
+#     name: <your-existing-reverse-proxy-network-name>
