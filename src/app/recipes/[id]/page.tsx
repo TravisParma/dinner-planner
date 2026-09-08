@@ -149,6 +149,7 @@ export default async function RecipeDetailPage({
           {recipe.ingredients.map((ing) => (
             <li key={ing.id} className="text-sm">
               {[ing.quantity, ing.unit, ing.name].filter(Boolean).join(" ")}
+              {ing.prepNote ? `, ${ing.prepNote}` : ""}
             </li>
           ))}
         </ul>

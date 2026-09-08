@@ -9,7 +9,7 @@
 | Feature (vision doc §6) | Status |
 |---|---|
 | 6.2 Recipe Library — manual entry | ✅ Built |
-| 6.2 Recipe Library — URL import | ✅ Built (general-purpose, via schema.org JSON-LD — no priority sites) |
+| 6.2 Recipe Library — URL import | ➖ Removed (was built via schema.org JSON-LD; pulled per product decision — see git history for `src/lib/recipeImport.ts`) |
 | 6.2 Rating system | ✅ Built |
 | 6.1 Recipe Finder | ✅ Built (library-only search, folded into `/recipes`) |
 | 6.3 Dinner Planner | ✅ Built (with persisted history) |
@@ -51,9 +51,11 @@ Recipe
 Ingredient
   id        String  @id @default(cuid())
   recipeId  String  -> Recipe (onDelete: Cascade)
-  name      String
+  name      String    // pure ingredient name — no prep style (see prepNote)
   quantity  String?   // string, not numeric — handles "1/2", "to taste", etc.
   unit      String?
+  prepNote  String?   // free-text prep style, e.g. "chopped" — kept out of `name` so
+                       // IngredientLibraryItem only ever collects clean ingredient names
   position  Int       // display order within the recipe
 
 IngredientLibraryItem
@@ -84,7 +86,7 @@ GroceryListItem
 
 **Deliberate simplifications (matches vision doc's non-goals, §4):**
 - Tags (`skillTags`, `cuisineTags`) are plain comma-separated strings, not a normalized tag table. Filtering/sorting on them happens in application code after fetch (fine at personal-library scale). Revisit only if tag volume or cross-recipe tag management becomes a real need.
-- `IngredientLibraryItem` is a lightweight lookup list, not a managed entity — it partially resolves the vision doc's "Standalone Ingredient Library" non-goal (§4), but deliberately stays minimal: there's no FK from `Ingredient` to it (picking from the library just copies `name`/`unit` into a new `Ingredient` row) and no UI to rename/delete library entries. It only grows: every ingredient name saved on any recipe is auto-upserted into it (case-sensitive exact match on `name`), so it can accumulate near-duplicates (e.g. "onion" vs "onion, chopped") over time. Revisit with a management page if that becomes annoying.
+- `IngredientLibraryItem` is a lightweight lookup list, not a managed entity — it partially resolves the vision doc's "Standalone Ingredient Library" non-goal (§4), but deliberately stays minimal: there's no FK from `Ingredient` to it (picking from the library just copies `name`/`unit` into a new `Ingredient` row) and no UI to rename/delete library entries. It only grows: every ingredient name saved on any recipe is auto-upserted into it (case-sensitive exact match on `name`). Prep style (e.g. "chopped") lives in the separate `Ingredient.prepNote` field, entered via its own form input, specifically so it never leaks into `name` and pollutes the library with prep-qualified duplicates (e.g. "onion" vs "onion, chopped") — see "Ingredient library picker" in §4. Recipes saved before `prepNote` existed may still have prep text baked into `name`; this was a deliberate one-time exception, not cleaned up retroactively. Revisit with a management page if near-duplicates still accumulate for other reasons.
 - No units-of-measure normalization or conversion — `quantity`/`unit` are free-text strings.
 - `PlannedMeal` is one row per calendar day (`date` is `@unique`), holding exactly one recipe. There's no "meal slot" concept (breakfast/lunch/dinner) — this app is dinner-only per the vision doc's scope, so a day maps to a single planned recipe. Assigning a new recipe to an already-planned day upserts (replaces) rather than adding a second row.
 - `GroceryListItem` stores only *interaction state* (checked/removed) for recipe-derived items, keyed by `(rangeStart, rangeEnd, itemKey)` — it does **not** store the computed quantity/name/unit as the source of truth for those; that's always recomputed fresh from the current plan on every render (see §4). The `name`/`quantity`/`unit` columns on a generated-item row only exist so the DB is legible when inspected directly; they're not read back for display. Manual items (`itemKey: null`) are the opposite — those columns *are* the source of truth, since there's no recipe data to recompute them from. SQLite treats multiple `NULL`s as distinct under a unique index, so any number of manual items can coexist per range without conflicting with the `@@unique` constraint.
@@ -96,21 +98,22 @@ GroceryListItem
 | `/` | Redirects to `/recipes` |
 | `/recipes` | Library list **and Recipe Finder** — sort (`?sort=title\|rating\|lastMade\|cuisine`), keyword search (`?q=...`, matches title or ingredient names), skill-tag filter (`?skill=...`), and cuisine/diet-tag filter (`?cuisine=...`), all computed server-side in-memory after fetching all recipes |
 | `/recipes/new` | Manual add form |
-| `/recipes/import` | URL import — client component; fetches + parses on demand, then reuses `RecipeForm` pre-filled for review before saving |
 | `/recipes/[id]` | Detail view — rating selector, "make again" toggle, "mark made today", edit/delete |
 | `/recipes/[id]/edit` | Edit form (same `RecipeForm` component as `/recipes/new`) |
 | `/planner` | Dinner Planner — `?start=YYYY-MM-DD&days=1-7` (defaults: today, 7) picks the visible date range; each day shows its assigned recipe (or an assign form) |
 | `/grocery-list` | Grocery List — same `?start=&days=` convention as `/planner`; interactive checklist derived from that range's planned meals, plus manually-added items |
 
-Server actions in [`src/app/recipes/actions.ts`](../src/app/recipes/actions.ts): `createRecipe`, `updateRecipe`, `deleteRecipe`, `rateRecipe`, `toggleMakeAgain`, `markMadeToday`, `extractRecipeFromUrl`, `getIngredientLibrary`. All revalidate the relevant paths and redirect where appropriate (`extractRecipeFromUrl` and `getIngredientLibrary` just return data — no DB write).
+Server actions in [`src/app/recipes/actions.ts`](../src/app/recipes/actions.ts): `createRecipe`, `updateRecipe`, `deleteRecipe`, `rateRecipe`, `toggleMakeAgain`, `markMadeToday`, `getIngredientLibrary`. All revalidate the relevant paths and redirect where appropriate (`getIngredientLibrary` just returns data — no DB write).
 
 Ingredients are passed from the client form to the server action as a JSON string in a hidden `ingredientsJson` field (see `RecipeForm.tsx`) rather than as repeated indexed form fields — simplest way to submit a dynamic-length list through a native form POST to a Server Action.
 
 ### Ingredient library picker
 
-`RecipeForm.tsx` (used by `/recipes/new`, `/recipes/[id]/edit`, and `/recipes/import`) takes an optional `libraryItems` prop — `{id, name, defaultUnit}[]` fetched via `getIngredientLibrary()` — and renders an "Add from ingredient library" combobox (native `<input list>` + `<datalist>`, no extra dependency) above the ingredient rows. Picking a name appends a new ingredient row pre-filled with that item's `name` and `defaultUnit`; quantity is always left blank for the user to fill in. The free-text "+ Add ingredient" row is unchanged and still works for one-off items.
+`RecipeForm.tsx` (used by `/recipes/new` and `/recipes/[id]/edit`) takes an optional `libraryItems` prop — `{id, name, defaultUnit}[]` fetched via `getIngredientLibrary()` — and renders an "Add from ingredient library" combobox (native `<input list>` + `<datalist>`, no extra dependency) above the ingredient rows. Picking a name appends a new ingredient row pre-filled with that item's `name` and `defaultUnit`; quantity is always left blank for the user to fill in. The free-text "+ Add ingredient" row is unchanged and still works for one-off items.
 
-`createRecipe`/`updateRecipe` upsert every saved ingredient's `name` into `IngredientLibraryItem` (keeping the first-seen `unit` as `defaultUnit`), so the library grows automatically from normal recipe entry — no separate "manage ingredients" step exists. The two server-component pages (`new`, `[id]/edit`) fetch the library directly via Prisma; the client-component import page fetches it by calling the `getIngredientLibrary` server action from a `useEffect` on mount.
+`createRecipe`/`updateRecipe` upsert every saved ingredient's `name` into `IngredientLibraryItem` (keeping the first-seen `unit` as `defaultUnit`), so the library grows automatically from normal recipe entry — no separate "manage ingredients" step exists. Both pages (`new`, `[id]/edit`) are Server Components and fetch the library directly via Prisma.
+
+Each ingredient row also has its own free-text "Prep" input, stored as `Ingredient.prepNote` and shown on the recipe detail page as a trailing `, <prepNote>` after the name — but it is *not* part of `name` and is never sent to `IngredientLibraryItem`, so prep style (chopped, diced, melted, ...) can't create near-duplicate library entries.
 
 ### Recipe Finder
 
@@ -120,17 +123,6 @@ Given that, Recipe Finder isn't a separate route — it's implemented as the `q`
 
 - Keyword search (`?q=`) matches case-insensitively against recipe title **or any ingredient name** — e.g. searching "ketchup" finds "Easy Meatloaf" even though "ketchup" isn't in the title.
 - All filtering (`q`, `skill`, `cuisine`) happens in-memory after fetching the full recipe list, same as the pre-existing skill filter — SQLite via Prisma has no case-insensitive `contains` mode (that's Postgres/MySQL-only), and in-memory filtering is fine at personal-library scale.
-
-### URL import
-
-[`src/lib/recipeImport.ts`](../src/lib/recipeImport.ts) implements general-purpose extraction (vision doc §6.2 open question — resolved as: no priority sites, general-purpose only):
-
-- Server-side `fetch()` of the given URL, then regex-extraction of `<script type="application/ld+json">` blocks (no HTML parser dependency).
-- Recursively searches parsed JSON-LD (including `@graph` wrappers and arrays) for a node whose `@type` is `Recipe`.
-- Pulls `name`, `recipeIngredient`, `recipeInstructions` (handles string arrays, `HowToStep`/`HowToSection` shapes), `recipeYield`, `prepTime`/`cookTime` (ISO 8601 durations), `recipeCuisine`.
-- `parseIngredientLine()` heuristically splits each ingredient string into `{name, quantity, unit}` via a leading-quantity regex (handles fractions, decimals, ranges) and a fixed unit word list. This is heuristic, not authoritative — the import page always shows the parsed result in the same editable `RecipeForm` before it's saved, per the vision doc's "review/edit before saving" requirement (§6.2).
-- On failure (no JSON-LD, no `Recipe` node, network/HTTP error) throws a user-facing `Error` with a message telling the user to fall back to manual entry — no partial/silent saves.
-- Verified against a real-world site (allrecipes.com) during development: correctly extracted title, 9 ingredients with quantity/unit/name, numbered steps, servings, prep/cook time, and cuisine.
 
 ### Dinner Planner
 

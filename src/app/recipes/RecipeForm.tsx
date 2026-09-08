@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-type IngredientRow = { name: string; quantity: string; unit: string };
+type IngredientRow = { name: string; quantity: string; unit: string; prepNote: string };
 
 export type RecipeFormValues = {
   title: string;
@@ -16,7 +16,7 @@ export type RecipeFormValues = {
   ingredients: IngredientRow[];
 };
 
-const emptyRow: IngredientRow = { name: "", quantity: "", unit: "" };
+const emptyRow: IngredientRow = { name: "", quantity: "", unit: "", prepNote: "" };
 
 export const emptyRecipeForm: RecipeFormValues = {
   title: "",
@@ -64,7 +64,10 @@ export default function RecipeForm({
     if (!item) return;
     setIngredients((rows) => {
       const base = rows.length === 1 && rows[0].name === "" ? [] : rows;
-      return [...base, { name: item.name, quantity: "", unit: item.defaultUnit ?? "" }];
+      return [
+        ...base,
+        { name: item.name, quantity: "", unit: item.defaultUnit ?? "", prepNote: "" },
+      ];
     });
     setLibraryPick("");
   }
@@ -166,6 +169,13 @@ export default function RecipeForm({
                 value={row.unit}
                 onChange={(e) => updateIngredient(index, "unit", e.target.value)}
                 className="w-20 rounded border border-zinc-300 px-3 py-2"
+              />
+              <input
+                aria-label="Prep"
+                placeholder="Prep (e.g. chopped)"
+                value={row.prepNote}
+                onChange={(e) => updateIngredient(index, "prepNote", e.target.value)}
+                className="w-32 rounded border border-zinc-300 px-3 py-2"
               />
               <button
                 type="button"

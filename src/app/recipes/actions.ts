@@ -3,9 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { fetchAndParseRecipe, type ImportedRecipe } from "@/lib/recipeImport";
 
-type IngredientInput = { name: string; quantity?: string; unit?: string };
+type IngredientInput = { name: string; quantity?: string; unit?: string; prepNote?: string };
 
 function parseIngredients(raw: FormDataEntryValue | null): IngredientInput[] {
   if (!raw || typeof raw !== "string") return [];
@@ -18,13 +17,14 @@ function parseIngredients(raw: FormDataEntryValue | null): IngredientInput[] {
   if (!Array.isArray(parsed)) return [];
   return parsed
     .filter(
-      (i): i is { name: string; quantity?: string; unit?: string } =>
+      (i): i is { name: string; quantity?: string; unit?: string; prepNote?: string } =>
         !!i && typeof i.name === "string" && i.name.trim().length > 0
     )
     .map((i) => ({
       name: i.name.trim(),
       quantity: i.quantity?.trim() || undefined,
       unit: i.unit?.trim() || undefined,
+      prepNote: i.prepNote?.trim() || undefined,
     }));
 }
 
@@ -137,13 +137,6 @@ export async function toggleMakeAgain(id: string, current: boolean) {
   });
   revalidatePath("/recipes");
   revalidatePath(`/recipes/${id}`);
-}
-
-export async function extractRecipeFromUrl(url: string): Promise<ImportedRecipe> {
-  if (!url.trim()) {
-    throw new Error("Enter a URL first.");
-  }
-  return fetchAndParseRecipe(url.trim());
 }
 
 export async function markMadeToday(id: string) {

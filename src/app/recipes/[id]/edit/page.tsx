@@ -41,6 +41,7 @@ export default async function EditRecipePage({
             name: ing.name,
             quantity: ing.quantity ?? "",
             unit: ing.unit ?? "",
+            prepNote: ing.prepNote ?? "",
           })),
         }}
       />

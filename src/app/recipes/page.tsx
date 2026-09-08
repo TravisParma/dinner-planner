@@ -70,12 +70,6 @@ export default async function RecipesPage({
         <h1 className="text-xl font-semibold">Recipe Library</h1>
         <div className="flex gap-2">
           <Link
-            href="/recipes/import"
-            className="rounded border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-100"
-          >
-            Import from URL
-          </Link>
-          <Link
             href="/recipes/new"
             className="rounded bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700"
           >

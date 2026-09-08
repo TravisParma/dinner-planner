@@ -33,6 +33,9 @@ model Ingredient {
   name     String
   quantity String?
   unit     String?
+  prepNote String? // free-text prep style, e.g. "chopped" — kept separate from `name` so the
+                    // ingredient library (see IngredientLibraryItem) only ever collects pure
+                    // ingredient names, never prep-qualified variants.
   position Int     @default(0)
 }
 
