@@ -36,6 +36,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <Link href="/planner" className="text-sm text-zinc-600 hover:text-zinc-900">
               Planner
             </Link>
+            <Link href="/ingredients" className="text-sm text-zinc-600 hover:text-zinc-900">
+              Ingredients
+            </Link>
             <Link href="/grocery-list" className="text-sm text-zinc-600 hover:text-zinc-900">
               Grocery List
             </Link>
