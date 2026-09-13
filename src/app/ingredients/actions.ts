@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
+import { createLibraryItemRecord } from "@/lib/ingredientLibrary";
 
 function str(formData: FormData, key: string): string | undefined {
   const v = formData.get(key);
@@ -16,14 +17,7 @@ export async function createLibraryItem(formData: FormData) {
   }
   const defaultUnit = str(formData, "defaultUnit") ?? null;
 
-  try {
-    await prisma.ingredientLibraryItem.create({ data: { name, defaultUnit } });
-  } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      throw new Error(`"${name}" is already in the library.`);
-    }
-    throw err;
-  }
+  await createLibraryItemRecord(name, defaultUnit);
 
   revalidatePath("/ingredients");
   revalidatePath("/recipes");
