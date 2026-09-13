@@ -111,3 +111,63 @@ export async function createRecipeRecord(data: RecipeInput) {
   await registerIngredientsInLibrary(ingredients);
   return recipe;
 }
+
+export type RecipePatch = Partial<RecipeInput>;
+
+/**
+ * Validates a partial update body (JSON API `PATCH /api/recipes/[id]` — see
+ * docs/spec.md §4). Unlike `validateRecipeInput`, only keys actually present
+ * in `input` are validated/returned — this lets a caller update e.g. just
+ * `steps` without resending the full recipe. `title` and `ingredients`, if
+ * present, still can't be emptied (a recipe always needs both per §5).
+ */
+export function validateRecipePatchInput(input: Record<string, unknown>): RecipePatch {
+  if (Object.keys(input).length === 0) {
+    throw new Error("Request body must include at least one field to update.");
+  }
+
+  const patch: RecipePatch = {};
+
+  if ("title" in input) {
+    const title = strOrNull(input.title);
+    if (!title) throw new Error("title cannot be empty.");
+    patch.title = title;
+  }
+  if ("ingredients" in input) {
+    const ingredients = parseIngredientsInput(input.ingredients);
+    if (ingredients.length === 0) {
+      throw new Error("ingredients must include at least one entry with a name.");
+    }
+    patch.ingredients = ingredients;
+  }
+  if ("sourceUrl" in input) patch.sourceUrl = strOrNull(input.sourceUrl);
+  if ("servings" in input) patch.servings = intOrNull(input.servings);
+  if ("prepTimeMinutes" in input) patch.prepTimeMinutes = intOrNull(input.prepTimeMinutes);
+  if ("cookTimeMinutes" in input) patch.cookTimeMinutes = intOrNull(input.cookTimeMinutes);
+  if ("skillTags" in input) patch.skillTags = tagsOrNull(input.skillTags);
+  if ("cuisineTags" in input) patch.cuisineTags = tagsOrNull(input.cuisineTags);
+  if ("steps" in input) patch.steps = strOrNull(input.steps);
+
+  return patch;
+}
+
+export async function updateRecipeRecord(id: string, patch: RecipePatch) {
+  const { ingredients, ...rest } = patch;
+
+  if (ingredients) {
+    await prisma.ingredient.deleteMany({ where: { recipeId: id } });
+  }
+  const recipe = await prisma.recipe.update({
+    where: { id },
+    data: {
+      ...rest,
+      ...(ingredients
+        ? { ingredients: { create: ingredients.map((ing, index) => ({ ...ing, position: index })) } }
+        : {}),
+    },
+  });
+  if (ingredients) {
+    await registerIngredientsInLibrary(ingredients);
+  }
+  return recipe;
+}

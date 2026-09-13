@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
   createRecipeRecord,
-  registerIngredientsInLibrary,
+  updateRecipeRecord,
   validateRecipeInput,
 } from "@/lib/recipes";
 import { listLibraryItems } from "@/lib/ingredientLibrary";
@@ -51,19 +51,8 @@ export async function createRecipe(formData: FormData) {
 }
 
 export async function updateRecipe(id: string, formData: FormData) {
-  const { ingredients, ...data } = recipeDataFromForm(formData);
-
-  await prisma.ingredient.deleteMany({ where: { recipeId: id } });
-  await prisma.recipe.update({
-    where: { id },
-    data: {
-      ...data,
-      ingredients: {
-        create: ingredients.map((ing, index) => ({ ...ing, position: index })),
-      },
-    },
-  });
-  await registerIngredientsInLibrary(ingredients);
+  const data = recipeDataFromForm(formData);
+  await updateRecipeRecord(id, data);
 
   revalidatePath("/recipes");
   revalidatePath(`/recipes/${id}`);

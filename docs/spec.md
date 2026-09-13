@@ -104,11 +104,12 @@ GroceryListItem
 | `/grocery-list` | Grocery List — same `?start=&days=` convention as `/planner`; interactive checklist derived from that range's planned meals, plus manually-added items |
 | `/ingredients` | Ingredient Library management — add, rename, and delete `IngredientLibraryItem` entries directly |
 | `/api/recipes` | JSON API — `GET` lists recipes, `POST` creates one. See "JSON API" below. |
+| `/api/recipes/[id]` | JSON API — `PATCH` partially updates one recipe. See "JSON API" below. |
 | `/api/ingredients` | JSON API — `GET` lists the ingredient library, `POST` creates an entry. See "JSON API" below. |
 
 Server actions in [`src/app/recipes/actions.ts`](../src/app/recipes/actions.ts): `createRecipe`, `updateRecipe`, `deleteRecipe`, `rateRecipe`, `toggleMakeAgain`, `markMadeToday`, `getIngredientLibrary`. All revalidate the relevant paths and redirect where appropriate (`getIngredientLibrary` just returns data — no DB write).
 
-The recipe-creation core (validate input → create `Recipe` + `Ingredient` rows → upsert names into `IngredientLibraryItem`) lives in [`src/lib/recipes.ts`](../src/lib/recipes.ts) (`validateRecipeInput`, `createRecipeRecord`, `registerIngredientsInLibrary`), and the library-item core lives in [`src/lib/ingredientLibrary.ts`](../src/lib/ingredientLibrary.ts) (`listLibraryItems`, `createLibraryItemRecord`). Both `recipes/actions.ts` (the web form) and `app/api/*/route.ts` (the JSON API below) call these same functions — the two entry points share one validation/business-rule implementation rather than duplicating it, so the "title + ≥1 named ingredient" rule (§5) and the duplicate-name handling (§4's Ingredient Library management section) can't drift between them.
+The recipe-creation/update core (validate input → create/replace `Recipe` + `Ingredient` rows → upsert names into `IngredientLibraryItem`) lives in [`src/lib/recipes.ts`](../src/lib/recipes.ts) (`validateRecipeInput`, `createRecipeRecord`, `validateRecipePatchInput`, `updateRecipeRecord`, `registerIngredientsInLibrary`), and the library-item core lives in [`src/lib/ingredientLibrary.ts`](../src/lib/ingredientLibrary.ts) (`listLibraryItems`, `createLibraryItemRecord`). Both `recipes/actions.ts` (the web form's `createRecipe`/`updateRecipe`) and `app/api/*/route.ts` (the JSON API below) call these same functions — the two entry points share one validation/business-rule implementation rather than duplicating it, so the "title + ≥1 named ingredient" rule (§5) and the duplicate-name handling (§4's Ingredient Library management section) can't drift between them.
 
 Ingredients are passed from the client form to the server action as a JSON string in a hidden `ingredientsJson` field (see `RecipeForm.tsx`) rather than as repeated indexed form fields — simplest way to submit a dynamic-length list through a native form POST to a Server Action.
 
@@ -132,17 +133,24 @@ Server actions in [`src/app/ingredients/actions.ts`](../src/app/ingredients/acti
 
 [`src/app/api/recipes/route.ts`](../src/app/api/recipes/route.ts) and [`src/app/api/ingredients/route.ts`](../src/app/api/ingredients/route.ts) — added so a script on another machine on the LAN can add recipes/ingredients without driving the browser UI. Everything else in the app is Server Actions (see §2); these two routes are the only actual REST/JSON endpoints, added deliberately for this one purpose.
 
+A Claude Code skill documents how to *call* this API for scripted recipe/ingredient creation — it's the operating manual for an agent, this section is the operating manual for a human. It exists in two identical copies: [`.claude/skills/dinner-planner-api/SKILL.md`](../.claude/skills/dinner-planner-api/SKILL.md) (where Claude Code actually discovers skills from) and [`.agents/skills/dinner-planner-api/SKILL.md`](../.agents/skills/dinner-planner-api/SKILL.md) (kept as a byte-identical mirror per an earlier explicit request). Keep all three — this section and both skill copies — in sync: any change to these routes' request/response shape or validation must update them together in the same turn.
+
 - **Auth:** same as every other route — `src/middleware.ts`'s Basic Auth gate covers `/api/*` too (its matcher excludes only `_next/*` and `favicon.ico`), so calls need `-u <BASIC_AUTH_USER>:<BASIC_AUTH_PASSWORD>` (or an equivalent `Authorization: Basic ...` header). No separate API key/token exists.
 - **`GET /api/recipes`** → `{ recipes: {id, title, sourceUrl, rating, createdAt}[] }`, sorted by title. Intentionally not the full recipe shape (no ingredients/steps) — enough for a script to check what titles already exist before importing more.
 - **`POST /api/recipes`** → body is JSON with `title` (required) and `ingredients` (required, array of `{name, quantity?, unit?, prepNote?}`, at least one with a non-empty `name`) — the same "title + ≥1 named ingredient" rule as the manual-entry form (§5). Optional: `sourceUrl`, `servings`, `prepTimeMinutes`, `cookTimeMinutes`, `steps` (strings/numbers), and `skillTags`/`cuisineTags` — each accepts **either** a comma-separated string (`"grill-friendly, one-pan"`, matching how the web form stores them) **or** a JSON array of strings (`["grill-friendly", "one-pan"]`, friendlier for a script to build), normalized to the same comma-separated column either way. Every ingredient's `name` is auto-upserted into `IngredientLibraryItem`, identical to the web form. Returns `201 {recipe}` on success, `400 {error}` if `title`/`ingredients` are missing or empty.
+- **`PATCH /api/recipes/[id]`** → partial update. Body is JSON with **any subset** of the `POST /api/recipes` fields — only keys actually present in the body are changed; omitted fields keep their current value. `title` and `ingredients`, if present, still can't be emptied (same "title + ≥1 named ingredient" rule) — this is what lets a script fix just `steps` (e.g. reformatting into a numbered list) without resending the whole recipe. If `ingredients` is present, it **fully replaces** the existing ingredient list (delete-all-then-recreate, same as the web edit form), including re-upserting names into `IngredientLibraryItem`; if omitted, existing ingredients are untouched. Returns `200 {recipe}` on success, `400 {error}` for an empty body or invalid fields, `404 {error}` if the id doesn't exist.
 - **`GET /api/ingredients`** → `{ items: {id, name, defaultUnit}[] }` — same data as `getIngredientLibrary()`.
 - **`POST /api/ingredients`** → body `{name, defaultUnit?}`. Returns `201 {item}` on success, `400 {error}` if `name` is missing, `409 {error}` if `name` already exists (same uniqueness rule as `/ingredients`'s own form).
-- **No update/delete endpoints** — only creation and listing were requested; editing/removing recipes or library items still requires the web UI (`/recipes/[id]/edit`, `/ingredients`). Add `PATCH`/`DELETE` handlers to the same route files if that need comes up, reusing the same `src/lib/recipes.ts` / `src/lib/ingredientLibrary.ts` core.
+- **No delete endpoint, and no update endpoint for ingredients** — recipe creation, recipe partial-update, and ingredient-library creation/listing were the needs that came up; removing a recipe/library item or renaming a library item still requires the web UI (`/recipes/[id]/edit`, `/ingredients`). Add `DELETE`/`PATCH` handlers to the relevant route files if that need comes up, reusing the same `src/lib/recipes.ts` / `src/lib/ingredientLibrary.ts` core.
 - **Example:**
   ```sh
   curl -u beedocker:yourpassword -X POST -H "Content-Type: application/json" \
     -d '{"title":"Tacos","ingredients":[{"name":"Ground beef","quantity":"1","unit":"lb"}],"skillTags":["grill-friendly"]}' \
     http://<host>:3000/api/recipes
+
+  curl -u beedocker:yourpassword -X PATCH -H "Content-Type: application/json" \
+    -d '{"steps":"1. Preheat...\n2. Cook..."}' \
+    http://<host>:3000/api/recipes/<id>
   ```
 
 ### Recipe Finder
@@ -235,5 +243,6 @@ That's the whole runbook — one command. It rebuilds the image from current sou
 - Finishing a feature from §1's table → flip its status, and update §6 if it removes a gap.
 - Introducing a new library, or making a deliberate version-pinning decision (like the Prisma 6 vs. 7 call in §2) → record it and *why*, not just what.
 - Establishing a new pattern other code should follow → add it to §7.
+- Changing `/api/recipes` or `/api/ingredients` (request/response shape, validation, auth, or adding new endpoints) → update §4's "JSON API" subsection **and both** `.claude/skills/dinner-planner-api/SKILL.md` **and** `.agents/skills/dinner-planner-api/SKILL.md` in the same turn — the skill is an agent-facing operating manual for that API and must not drift from it (the two copies must also stay identical to each other).
 
 Do not let this document drift into aspirational territory — if something is planned but not built, it belongs in the vision doc's build order, not here. This file only describes what exists in the codebase right now.
