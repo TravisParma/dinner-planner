@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Check } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import {
   deleteRecipe,
@@ -16,6 +17,15 @@ function parseTags(tags: string | null): string[] {
     .filter(Boolean);
 }
 
+function parseSteps(steps: string): string[] | null {
+  const lines = steps
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (lines.length <= 1) return null;
+  return lines.map((l) => l.replace(/^\d+[.)]\s*/, ""));
+}
+
 export default async function RecipeDetailPage({
   params,
 }: {
@@ -29,6 +39,15 @@ export default async function RecipeDetailPage({
 
   if (!recipe) notFound();
 
+  const now = new Date();
+  const weekStart = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  const weekEnd = new Date(weekStart);
+  weekEnd.setUTCDate(weekEnd.getUTCDate() + 6);
+
+  const plannedThisWeek = await prisma.plannedMeal.findFirst({
+    where: { recipeId: recipe.id, date: { gte: weekStart, lte: weekEnd } },
+  });
+
   const boundRate = rateRecipe.bind(null, recipe.id);
   const boundDelete = deleteRecipe.bind(null, recipe.id);
   const boundToggleMakeAgain = toggleMakeAgain.bind(
@@ -38,133 +57,186 @@ export default async function RecipeDetailPage({
   );
   const boundMarkMade = markMadeToday.bind(null, recipe.id);
 
+  const meta = [
+    recipe.servings ? `Serves ${recipe.servings}` : null,
+    recipe.prepTimeMinutes != null ? `Prep ${recipe.prepTimeMinutes} min` : null,
+    recipe.cookTimeMinutes != null ? `Cook ${recipe.cookTimeMinutes} min` : null,
+    recipe.lastMadeAt ? `Last made ${recipe.lastMadeAt.toLocaleDateString()}` : null,
+  ].filter(Boolean) as string[];
+
+  const stepLines = recipe.steps ? parseSteps(recipe.steps) : null;
+
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold">{recipe.title}</h1>
-          {recipe.sourceUrl && (
-            <a
-              href={recipe.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:underline"
-            >
-              Original source
-            </a>
+    <div className="flex flex-col gap-[13.2px]">
+      <Link href="/recipes" className="text-[13px] opacity-70 hover:opacity-100">
+        ← Recipes
+      </Link>
+
+      <div
+        className="grid gap-[35.2px]"
+        style={{ gridTemplateColumns: "minmax(0,1fr) 340px" }}
+      >
+        <div className="flex flex-col gap-[26.4px]">
+          <div>
+            <h1 className="text-[38px]">{recipe.title}</h1>
+            <p className="text-[13px] opacity-70">
+              {meta.join(" · ")}
+              {recipe.sourceUrl && (
+                <>
+                  {meta.length > 0 && " · "}
+                  <a
+                    href={recipe.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-accent-700 hover:underline"
+                  >
+                    Original source
+                  </a>
+                </>
+              )}
+            </p>
+          </div>
+
+          {(parseTags(recipe.skillTags).length > 0 || parseTags(recipe.cuisineTags).length > 0) && (
+            <div className="flex flex-wrap gap-1">
+              {parseTags(recipe.skillTags).map((tag) => (
+                <span key={tag} className="o-tag bg-accent-2-100 text-accent-2-800">
+                  {tag}
+                </span>
+              ))}
+              {parseTags(recipe.cuisineTags).map((tag) => (
+                <span key={tag} className="o-tag bg-accent-100 text-accent-800">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div>
+            <h2 className="mb-3 text-[20px]">Ingredients</h2>
+            <div className="grid grid-cols-1 gap-x-[26.4px] sm:grid-cols-2">
+              {recipe.ingredients.map((ing) => (
+                <div
+                  key={ing.id}
+                  className="o-rule flex items-baseline gap-3 py-[9px] text-[14px]"
+                >
+                  <span className="text-accent-700" style={{ minWidth: "62px" }}>
+                    {ing.quantity} {ing.unit}
+                  </span>
+                  <span className="flex-1">{ing.name}</span>
+                  {ing.prepNote && (
+                    <span className="text-[13px] opacity-50">{ing.prepNote}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {recipe.steps && (
+            <div>
+              <h2 className="mb-3 text-[20px]">Steps</h2>
+              {stepLines ? (
+                <div className="flex flex-col gap-[14px]">
+                  {stepLines.map((step, i) => (
+                    <div key={i} className="flex items-start gap-[14px]">
+                      <span
+                        className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-accent-200 text-[12px] text-accent-800"
+                      >
+                        {i + 1}
+                      </span>
+                      <p className="text-[15px] leading-[1.55]">{step}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="whitespace-pre-wrap text-sm">{recipe.steps}</p>
+              )}
+            </div>
           )}
         </div>
-        <div className="flex gap-2">
-          <Link
-            href={`/recipes/${recipe.id}/edit`}
-            className="rounded border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-100"
-          >
-            Edit
-          </Link>
-          <form action={boundDelete}>
-            <button
-              type="submit"
-              className="rounded border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+
+        <div className="flex flex-col gap-[13.2px]">
+          <div className="o-card flex flex-col gap-3">
+            <span className="text-[10px] uppercase tracking-wide text-accent-700">
+              Your notes
+            </span>
+            <form action={boundRate} className="flex flex-col gap-1">
+              <span className="text-sm font-medium">Rating</span>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="submit"
+                    name="rating"
+                    value={n}
+                    className={`text-[24px] leading-none ${
+                      recipe.rating && n <= recipe.rating ? "text-accent" : "opacity-30"
+                    }`}
+                    aria-label={`Rate ${n} star${n > 1 ? "s" : ""}`}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+            </form>
+            <form action={boundToggleMakeAgain}>
+              <button
+                type="submit"
+                className={`o-pill w-full ${
+                  recipe.makeAgain
+                    ? "bg-accent-2-200 text-accent-2-800"
+                    : "border border-divider"
+                }`}
+              >
+                {recipe.makeAgain && <Check strokeWidth={2.75} size={15} />}
+                Make again
+              </button>
+            </form>
+            <form action={boundMarkMade}>
+              <button type="submit" className="o-pill w-full border border-divider">
+                Mark made today
+              </button>
+            </form>
+          </div>
+
+          <div className="o-card flex flex-col gap-3">
+            <span className="text-[10px] uppercase tracking-wide text-accent-700">
+              This recipe
+            </span>
+            <p className="text-sm">
+              {plannedThisWeek
+                ? `Planned for ${plannedThisWeek.date.toLocaleDateString(undefined, {
+                    weekday: "long",
+                    month: "short",
+                    day: "numeric",
+                    timeZone: "UTC",
+                  })}`
+                : "Not planned this week"}
+            </p>
+            <Link href="/planner" className="o-pill bg-accent text-bg w-full">
+              {plannedThisWeek ? "Add to another day" : "Add to the plan"}
+            </Link>
+          </div>
+
+          <div className="flex gap-2">
+            <Link
+              href={`/recipes/${recipe.id}/edit`}
+              className="o-pill flex-1 border border-divider"
             >
-              Delete
-            </button>
-          </form>
+              Edit
+            </Link>
+            <form action={boundDelete} className="flex-1">
+              <button
+                type="submit"
+                className="o-pill w-full border"
+                style={{ borderColor: "#8c2f11", color: "#8c2f11" }}
+              >
+                Delete
+              </button>
+            </form>
+          </div>
         </div>
       </div>
-
-      <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-600">
-        {recipe.servings && <span>Serves {recipe.servings}</span>}
-        {recipe.prepTimeMinutes != null && <span>Prep {recipe.prepTimeMinutes} min</span>}
-        {recipe.cookTimeMinutes != null && <span>Cook {recipe.cookTimeMinutes} min</span>}
-        {recipe.lastMadeAt && (
-          <span>Last made {recipe.lastMadeAt.toLocaleDateString()}</span>
-        )}
-      </div>
-
-      <div className="flex flex-wrap gap-1">
-        {parseTags(recipe.skillTags).map((tag) => (
-          <span key={tag} className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs">
-            {tag}
-          </span>
-        ))}
-        {parseTags(recipe.cuisineTags).map((tag) => (
-          <span key={tag} className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">
-            {tag}
-          </span>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-4 rounded border border-zinc-200 bg-white p-4">
-        <form action={boundRate} className="flex items-center gap-2">
-          <label htmlFor="rating" className="text-sm font-medium">
-            Rating
-          </label>
-          <select
-            id="rating"
-            name="rating"
-            defaultValue={recipe.rating ?? ""}
-            className="rounded border border-zinc-300 px-2 py-1 text-sm"
-          >
-            <option value="">Not rated</option>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <option key={n} value={n}>
-                {n} star{n > 1 ? "s" : ""}
-              </option>
-            ))}
-          </select>
-          <button
-            type="submit"
-            className="rounded border border-zinc-300 px-2 py-1 text-sm font-medium hover:bg-zinc-100"
-          >
-            Update
-          </button>
-        </form>
-
-        <form action={boundToggleMakeAgain}>
-          <button
-            type="submit"
-            className={`rounded px-3 py-1.5 text-sm font-medium ${
-              recipe.makeAgain
-                ? "bg-green-100 text-green-700"
-                : "border border-zinc-300 hover:bg-zinc-100"
-            }`}
-          >
-            {recipe.makeAgain ? "✓ Make again" : "Make again?"}
-          </button>
-        </form>
-
-        <form action={boundMarkMade}>
-          <button
-            type="submit"
-            className="rounded border border-zinc-300 px-3 py-1.5 text-sm font-medium hover:bg-zinc-100"
-          >
-            Mark made today
-          </button>
-        </form>
-      </div>
-
-      <div>
-        <h2 className="mb-2 font-semibold">Ingredients</h2>
-        <ul className="flex flex-col gap-1">
-          {recipe.ingredients.map((ing) => (
-            <li key={ing.id} className="text-sm">
-              {[ing.quantity, ing.unit, ing.name].filter(Boolean).join(" ")}
-              {ing.prepNote ? `, ${ing.prepNote}` : ""}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {recipe.steps && (
-        <div>
-          <h2 className="mb-2 font-semibold">Steps</h2>
-          <p className="whitespace-pre-wrap text-sm">{recipe.steps}</p>
-        </div>
-      )}
-
-      <Link href="/recipes" className="text-sm text-blue-600 hover:underline">
-        ← Back to library
-      </Link>
     </div>
   );
 }

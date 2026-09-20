@@ -23,7 +23,7 @@ export default async function EditRecipePage({
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Edit Recipe</h1>
+      <h1 className="text-[32px]">Edit recipe</h1>
       <RecipeForm
         action={boundUpdate}
         submitLabel="Save Changes"

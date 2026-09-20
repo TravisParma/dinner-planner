@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/organic-46fa758f-d54a-4ea0-8dad-7f3f855f99e9/styles.css">
+<style>
+  body { margin:0; background:#ded2bc; }
+  a { color:var(--color-accent-700); text-decoration:none; }
+  a:hover { color:var(--color-accent-800); text-decoration:underline; }
+  input, select, textarea, button { font-family:var(--font-body); }
+</style>
+</helmet>
+
+<div style="display:flex; flex-direction:column; gap:56px; padding:48px; font-family:var(--font-body); color:var(--color-text);">
+
+  <div style="display:flex; flex-direction:column; gap:8px; max-width:720px;">
+    <div style="font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--color-accent-700);">Proposed — Organic design system</div>
+    <div style="font-family:var(--font-heading); font-size:42px; line-height:1.1;">Family Dinner Planner</div>
+    <div style="font-size:15px; opacity:0.75;">Same screens, same flows. Warmer surface, one column of chrome instead of four, and desktop width actually used: cards in a grid, the week as a board, the grocery list as a two-column sheet.</div>
+  </div>
+
+  <!-- ─────────────── Recipe library ─────────────── -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font-size:12px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.55;">/recipes — Recipe library</div>
+    <div data-screen-label="Recipe library" style="width:1200px; background:var(--color-bg); border-radius:24px; overflow:hidden; box-shadow:var(--shadow-md);">
+
+      <div style="display:flex; align-items:center; gap:var(--space-4); padding:var(--space-3) var(--space-6); background:var(--color-neutral-100); border-bottom:1px solid var(--color-divider);">
+        <span style="font-family:var(--font-heading); font-size:19px; margin-right:var(--space-4);">Dinner Planner</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; background:var(--color-accent-200); color:var(--color-accent-800);">Recipes</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Planner</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Grocery list</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Ingredients</span>
+        <span style="margin-left:auto; font-size:13px; opacity:0.55;">7 dinners planned this week</span>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:var(--space-6); padding:var(--space-6);">
+
+        <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:var(--space-4);">
+          <div>
+            <h1 style="font-size:32px; margin:0;">Recipes</h1>
+            <div style="font-size:13px; opacity:0.6; margin-top:2px;">6 saved · 4 rated · 3 grill-friendly</div>
+          </div>
+          <button style="display:inline-flex; align-items:center; gap:7px; background:var(--color-accent); color:var(--color-bg); border:none; border-radius:999px; padding:10px 20px; font-family:var(--font-heading); font-size:14px; cursor:pointer;" style-hover="background:var(--color-accent-600)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+            Add recipe
+          </button>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap;">
+          <div style="position:relative; flex:1; min-width:260px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" style="position:absolute; left:16px; top:11px; opacity:0.5;"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.2-3.2"></path></svg>
+            <input placeholder="Search title or ingredient" style="width:100%; min-height:38px; padding:6px 14px 6px 40px; font-size:14px; background:var(--color-surface); border:1px solid var(--color-divider); border-radius:999px; color:var(--color-text);">
+          </div>
+          <div style="display:inline-flex; overflow:hidden; border:1px solid var(--color-divider); border-radius:999px; background:var(--color-surface);">
+            <span style="padding:8px 14px; font-size:13px; white-space:nowrap; background:var(--color-accent); color:var(--color-bg);">Title</span>
+            <span style="padding:8px 14px; font-size:13px; white-space:nowrap; border-left:1px solid var(--color-divider);">Rating</span>
+            <span style="padding:8px 14px; font-size:13px; white-space:nowrap; border-left:1px solid var(--color-divider);">Last made</span>
+            <span style="padding:8px 14px; font-size:13px; white-space:nowrap; border-left:1px solid var(--color-divider);">Cuisine</span>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap;">
+          <span style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.5; margin-right:4px; white-space:nowrap;">Filter</span>
+          <span style="font-size:12px; padding:4px 12px; border-radius:999px; background:var(--color-accent-200); color:var(--color-accent-800); white-space:nowrap;">grill-friendly</span>
+          <span style="font-size:12px; padding:4px 12px; border-radius:999px; border:1px solid var(--color-divider); white-space:nowrap;">one-pan</span>
+          <span style="font-size:12px; padding:4px 12px; border-radius:999px; border:1px solid var(--color-divider); white-space:nowrap;">under 30 min</span>
+          <span style="font-size:12px; padding:4px 12px; border-radius:999px; border:1px solid var(--color-divider); white-space:nowrap;">oven-only</span>
+          <span style="width:1px; height:18px; background:var(--color-divider); margin:0 6px;"></span>
+          <span style="font-size:12px; padding:4px 12px; border-radius:999px; border:1px solid var(--color-divider); white-space:nowrap;">american</span>
+          <span style="font-size:12px; padding:4px 12px; border-radius:999px; border:1px solid var(--color-divider); white-space:nowrap;">italian</span>
+          <span style="font-size:12px; padding:4px 12px; border-radius:999px; border:1px solid var(--color-divider); white-space:nowrap;">mexican</span>
+          <span style="font-size:12px; padding:4px 12px; border-radius:999px; border:1px solid var(--color-divider); white-space:nowrap;">japanese</span>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:var(--space-3);">
+          <sc-for list="{{ recipes }}" as="r" hint-placeholder-count="6">
+            <div style="display:flex; flex-direction:column; gap:var(--space-2); padding:var(--space-4); border-radius:26px; background:var(--color-surface); box-shadow:var(--shadow-sm);">
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:var(--space-2);">
+                <span style="font-family:var(--font-heading); font-size:18px; line-height:1.2;">{{ r.title }}</span>
+                <span style="font-size:13px; color:var(--color-accent-700); white-space:nowrap;">{{ r.stars }}</span>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                <sc-for list="{{ r.skill }}" as="t" hint-placeholder-count="2">
+                  <span style="font-size:11px; padding:3px 10px; border-radius:999px; background:var(--color-accent-2-100); color:var(--color-accent-2-800);">{{ t }}</span>
+                </sc-for>
+                <sc-for list="{{ r.cuisine }}" as="t" hint-placeholder-count="1">
+                  <span style="font-size:11px; padding:3px 10px; border-radius:999px; background:var(--color-accent-100); color:var(--color-accent-800);">{{ t }}</span>
+                </sc-for>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px; font-size:11px; opacity:0.55; margin-top:2px;">{{ r.meta }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── Recipe detail ─────────────── -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font-size:12px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.55;">/recipes/[id] — Recipe detail</div>
+    <div data-screen-label="Recipe detail" style="width:1200px; background:var(--color-bg); border-radius:24px; overflow:hidden; box-shadow:var(--shadow-md);">
+
+      <div style="display:flex; align-items:center; gap:var(--space-4); padding:var(--space-3) var(--space-6); background:var(--color-neutral-100); border-bottom:1px solid var(--color-divider);">
+        <span style="font-family:var(--font-heading); font-size:19px; margin-right:var(--space-4);">Dinner Planner</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; background:var(--color-accent-200); color:var(--color-accent-800);">Recipes</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Planner</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Grocery list</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Ingredients</span>
+      </div>
+
+      <div style="padding:var(--space-6);">
+        <a href="#" style="font-size:13px;">← Recipes</a>
+        <div style="display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:var(--space-8); margin-top:var(--space-3);">
+
+          <div style="display:flex; flex-direction:column; gap:var(--space-6);">
+            <div>
+              <h1 style="font-size:38px; margin:0 0 6px;">Sheet-Pan Sausage &amp; Peppers</h1>
+              <div style="display:flex; flex-wrap:wrap; align-items:center; gap:14px; font-size:13px; opacity:0.7;">
+                <span>Serves 4</span><span>·</span><span>Prep 10 min</span><span>·</span><span>Cook 35 min</span><span>·</span><span>Last made Sep 7</span>
+                <a href="#" style="font-size:13px;">Original source</a>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:12px;">
+                <span style="font-size:11px; padding:3px 10px; border-radius:999px; background:var(--color-accent-2-100); color:var(--color-accent-2-800);">one-pan</span>
+                <span style="font-size:11px; padding:3px 10px; border-radius:999px; background:var(--color-accent-2-100); color:var(--color-accent-2-800);">oven-only</span>
+                <span style="font-size:11px; padding:3px 10px; border-radius:999px; background:var(--color-accent-100); color:var(--color-accent-800);">italian</span>
+              </div>
+            </div>
+
+            <div>
+              <h2 style="font-size:20px; margin:0 0 var(--space-3);">Ingredients</h2>
+              <div style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:0 var(--space-6);">
+                <sc-for list="{{ detailIngredients }}" as="ing" hint-placeholder-count="8">
+                  <div style="display:flex; gap:12px; padding:9px 0; border-bottom:1px solid color-mix(in srgb, var(--color-text) 8%, transparent); font-size:14px;">
+                    <span style="min-width:62px; color:var(--color-accent-700);">{{ ing.qty }}</span>
+                    <span>{{ ing.name }}</span>
+                    <span style="margin-left:auto; opacity:0.5; font-size:13px;">{{ ing.prep }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div>
+              <h2 style="font-size:20px; margin:0 0 var(--space-3);">Steps</h2>
+              <div style="display:flex; flex-direction:column; gap:var(--space-3);">
+                <sc-for list="{{ detailSteps }}" as="s" hint-placeholder-count="4">
+                  <div style="display:flex; gap:14px; align-items:flex-start;">
+                    <span style="flex:none; width:26px; height:26px; border-radius:999px; background:var(--color-accent-200); color:var(--color-accent-800); display:grid; place-items:center; font-size:12px;">{{ s.n }}</span>
+                    <span style="font-size:15px; line-height:1.55; padding-top:2px;">{{ s.text }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:var(--space-3);">
+            <div style="display:flex; flex-direction:column; gap:var(--space-3); padding:var(--space-4); border-radius:26px; background:var(--color-surface); box-shadow:var(--shadow-sm);">
+              <div style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--color-accent-700);">Your notes</div>
+              <div>
+                <div style="font-size:12px; opacity:0.7; margin-bottom:6px;">Rating</div>
+                <div style="display:flex; gap:6px; font-size:24px; color:var(--color-accent); line-height:1;">
+                  <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                </div>
+              </div>
+              <button style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:10px; border-radius:999px; border:none; background:var(--color-accent-2-200); color:var(--color-accent-2-800); font-family:var(--font-heading); font-size:14px; cursor:pointer;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"></path></svg>
+                Make again
+              </button>
+              <button style="width:100%; padding:10px; border-radius:999px; border:1px solid var(--color-divider); background:transparent; font-family:var(--font-heading); font-size:14px; cursor:pointer; color:var(--color-text);" style-hover="background:color-mix(in srgb, var(--color-text) 7%, transparent)">Mark made today</button>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:var(--space-2); padding:var(--space-4); border-radius:26px; background:var(--color-surface); box-shadow:var(--shadow-sm);">
+              <div style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--color-accent-700);">This recipe</div>
+              <div style="font-size:13px; opacity:0.75;">Planned for Thursday, Sep 24.</div>
+              <button style="width:100%; padding:10px; border-radius:999px; border:none; background:var(--color-accent); color:var(--color-bg); font-family:var(--font-heading); font-size:14px; cursor:pointer;" style-hover="background:var(--color-accent-600)">Add to another day</button>
+            </div>
+
+            <div style="display:flex; gap:var(--space-2);">
+              <button style="flex:1; padding:9px; border-radius:999px; border:1px solid var(--color-divider); background:transparent; font-family:var(--font-heading); font-size:14px; cursor:pointer; color:var(--color-text);" style-hover="background:color-mix(in srgb, var(--color-text) 7%, transparent)">Edit</button>
+              <button style="flex:1; padding:9px; border-radius:999px; border:1px solid color-mix(in srgb, #9a3412 35%, transparent); background:transparent; color:#8c2f11; font-family:var(--font-heading); font-size:14px; cursor:pointer;" style-hover="background:color-mix(in srgb, #9a3412 8%, transparent)">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── Add / edit recipe ─────────────── -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font-size:12px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.55;">/recipes/new — Add &amp; edit recipe</div>
+    <div data-screen-label="Add recipe" style="width:1200px; background:var(--color-bg); border-radius:24px; overflow:hidden; box-shadow:var(--shadow-md);">
+
+      <div style="display:flex; align-items:center; gap:var(--space-4); padding:var(--space-3) var(--space-6); background:var(--color-neutral-100); border-bottom:1px solid var(--color-divider);">
+        <span style="font-family:var(--font-heading); font-size:19px; margin-right:var(--space-4);">Dinner Planner</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; background:var(--color-accent-200); color:var(--color-accent-800);">Recipes</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Planner</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Grocery list</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Ingredients</span>
+      </div>
+
+      <div style="padding:var(--space-6); display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:var(--space-8);">
+
+        <div style="display:flex; flex-direction:column; gap:var(--space-6);">
+          <h1 style="font-size:32px; margin:0;">Add a recipe</h1>
+
+          <div>
+            <div style="font-size:12px; opacity:0.7; margin-bottom:5px;">Title</div>
+            <input placeholder="e.g. Sheet-Pan Sausage &amp; Peppers" style="width:100%; min-height:42px; padding:8px 16px; font-size:16px; background:var(--color-surface); border:1px solid var(--color-divider); border-radius:999px; color:var(--color-text);">
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:var(--space-3); padding:var(--space-4); border-radius:26px; background:var(--color-surface);">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:var(--space-3);">
+              <span style="font-family:var(--font-heading); font-size:17px;">Ingredients</span>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <input placeholder="Pick from library…" style="min-height:34px; width:200px; padding:5px 14px; font-size:13px; background:var(--color-bg); border:1px solid var(--color-divider); border-radius:999px; color:var(--color-text);">
+                <button style="padding:7px 16px; border-radius:999px; border:1px solid var(--color-divider); background:transparent; font-family:var(--font-heading); font-size:13px; cursor:pointer; color:var(--color-text);" style-hover="background:color-mix(in srgb, var(--color-text) 7%, transparent)">Add</button>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:70px 70px minmax(0,1fr) 150px 28px; gap:8px; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.5; padding:0 4px;">
+              <span>Qty</span><span>Unit</span><span>Ingredient</span><span>Prep</span><span></span>
+            </div>
+
+            <sc-for list="{{ formRows }}" as="row" hint-placeholder-count="3">
+              <div style="display:grid; grid-template-columns:70px 70px minmax(0,1fr) 150px 28px; gap:8px; align-items:center;">
+                <input value="{{ row.qty }}" readonly style="min-height:36px; padding:6px 12px; font-size:14px; background:var(--color-bg); border:1px solid var(--color-divider); border-radius:999px; color:var(--color-text);">
+                <input value="{{ row.unit }}" readonly style="min-height:36px; padding:6px 12px; font-size:14px; background:var(--color-bg); border:1px solid var(--color-divider); border-radius:999px; color:var(--color-text);">
+                <input value="{{ row.name }}" readonly placeholder="Name" style="min-height:36px; padding:6px 14px; font-size:14px; background:var(--color-bg); border:1px solid var(--color-divider); border-radius:999px; color:var(--color-text);">
+                <input value="{{ row.prep }}" readonly placeholder="chopped" style="min-height:36px; padding:6px 14px; font-size:14px; background:var(--color-bg); border:1px solid var(--color-divider); border-radius:999px; color:var(--color-text);">
+                <button style="width:28px; height:28px; display:grid; place-items:center; border-radius:999px; border:none; background:transparent; cursor:pointer; color:var(--color-text); opacity:0.45;" style-hover="opacity:1">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+                </button>
+              </div>
+            </sc-for>
+
+            <button style="align-self:flex-start; display:inline-flex; align-items:center; gap:6px; padding:4px 4px; border:none; background:transparent; color:var(--color-accent-700); font-family:var(--font-heading); font-size:14px; cursor:pointer;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+              Add ingredient
+            </button>
+          </div>
+
+          <div>
+            <div style="font-size:12px; opacity:0.7; margin-bottom:5px;">Steps</div>
+            <textarea rows="7" placeholder="1. Heat oven to 425°F.&#10;2. …" style="width:100%; padding:12px 16px; font-size:15px; line-height:1.55; background:var(--color-surface); border:1px solid var(--color-divider); border-radius:22px; color:var(--color-text); resize:vertical;"></textarea>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:var(--space-3);">
+          <div style="display:flex; flex-direction:column; gap:var(--space-3); padding:var(--space-4); border-radius:26px; background:var(--color-surface); box-shadow:var(--shadow-sm);">
+            <div style="font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--color-accent-700);">Details</div>
+            <div style="display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px;">
+              <div>
+                <div style="font-size:11px; opacity:0.7; margin-bottom:4px;">Serves</div>
+                <input value="4" readonly style="width:100%; min-height:36px; padding:6px 12px; font-size:14px; background:var(--color-bg); border:1px solid var(--color-divider); border-radius:999px; color:var(--color-text);">
+              </div>
+              <div>
+                <div style="font-size:11px; opacity:0.7; margin-bottom:4px;">Prep</div>
+                <input value="10" readonly style="width:100%; min-height:36px; padding:6px 12px; font-size:14px; background:var(--color-bg); border:1px solid var(--color-divider); border-radius:999px; color:var(--color-text);">
+              </div>
+              <div>
+                <div style="font-size:11px; opacity:0.7; margin-bottom:4px;">Cook</div>
+                <input value="35" readonly style="width:100%; min-height:36px; padding:6px 12px; font-size:14px; background:var(--color-bg); border:1px solid var(--color-divider); border-radius:999px; color:var(--color-text);">
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px; opacity:0.7; margin-bottom:6px;">Skill &amp; equipment</div>
+              <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                <span style="font-size:11px; padding:4px 10px; border-radius:999px; background:var(--color-accent-2-200); color:var(--color-accent-2-800);">one-pan ✕</span>
+                <span style="font-size:11px; padding:4px 10px; border-radius:999px; background:var(--color-accent-2-200); color:var(--color-accent-2-800);">oven-only ✕</span>
+                <span style="font-size:11px; padding:4px 10px; border-radius:999px; border:1px dashed var(--color-divider); opacity:0.7; white-space:nowrap;">+ tag</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px; opacity:0.7; margin-bottom:6px;">Cuisine &amp; diet</div>
+              <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                <span style="font-size:11px; padding:4px 10px; border-radius:999px; background:var(--color-accent-200); color:var(--color-accent-800);">italian ✕</span>
+                <span style="font-size:11px; padding:4px 10px; border-radius:999px; border:1px dashed var(--color-divider); opacity:0.7; white-space:nowrap;">+ tag</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px; opacity:0.7; margin-bottom:4px;">Source URL</div>
+              <input placeholder="https://…" style="width:100%; min-height:36px; padding:6px 14px; font-size:13px; background:var(--color-bg); border:1px solid var(--color-divider); border-radius:999px; color:var(--color-text);">
+            </div>
+          </div>
+
+          <button style="width:100%; padding:12px; border-radius:999px; border:none; background:var(--color-accent); color:var(--color-bg); font-family:var(--font-heading); font-size:15px; cursor:pointer;" style-hover="background:var(--color-accent-600)">Save recipe</button>
+          <button style="width:100%; padding:10px; border-radius:999px; border:1px solid var(--color-divider); background:transparent; font-family:var(--font-heading); font-size:14px; cursor:pointer; color:var(--color-text);" style-hover="background:color-mix(in srgb, var(--color-text) 7%, transparent)">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── Planner ─────────────── -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font-size:12px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.55;">/planner — Weekly planner</div>
+    <div data-screen-label="Planner" style="width:1200px; background:var(--color-bg); border-radius:24px; overflow:hidden; box-shadow:var(--shadow-md);">
+
+      <div style="display:flex; align-items:center; gap:var(--space-4); padding:var(--space-3) var(--space-6); background:var(--color-neutral-100); border-bottom:1px solid var(--color-divider);">
+        <span style="font-family:var(--font-heading); font-size:19px; margin-right:var(--space-4);">Dinner Planner</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Recipes</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; background:var(--color-accent-200); color:var(--color-accent-800);">Planner</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Grocery list</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Ingredients</span>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:var(--space-6); padding:var(--space-6);">
+        <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:var(--space-4); flex-wrap:wrap;">
+          <div>
+            <h1 style="font-size:32px; margin:0;">Week of Sep 21</h1>
+            <div style="font-size:13px; opacity:0.6; margin-top:2px;">5 of 7 dinners assigned</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:var(--space-2);">
+            <div style="display:flex; align-items:center; gap:8px; padding:5px 6px 5px 16px; border:1px solid var(--color-divider); border-radius:999px; background:var(--color-surface);">
+              <span style="font-size:13px; opacity:0.7; white-space:nowrap;">Sep 21 – Sep 27</span>
+              <button style="width:28px; height:28px; border-radius:999px; border:none; background:var(--color-bg); cursor:pointer; color:var(--color-text); font-size:13px;">‹</button>
+              <button style="width:28px; height:28px; border-radius:999px; border:none; background:var(--color-bg); cursor:pointer; color:var(--color-text); font-size:13px;">›</button>
+            </div>
+            <button style="padding:10px 20px; border-radius:999px; border:none; background:var(--color-accent); color:var(--color-bg); font-family:var(--font-heading); font-size:14px; cursor:pointer;" style-hover="background:var(--color-accent-600)">Open grocery list</button>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:var(--space-2);">
+          <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <div style="display:flex; align-items:baseline; justify-content:space-between; padding:0 6px;">
+                <span style="font-family:var(--font-heading); font-size:14px;">{{ d.weekday }}</span>
+                <span style="font-size:11px; opacity:0.5;">{{ d.date }}</span>
+              </div>
+              <div style="{{ d.slotStyle }}">
+                <span style="{{ d.titleStyle }}">{{ d.meal }}</span>
+                <span style="{{ d.metaStyle }}">{{ d.metaText }}</span>
+                <div style="{{ d.tagStyle }}">{{ d.tag }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ showPlannerTray }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex; flex-direction:column; gap:var(--space-3); padding:var(--space-4); border-radius:26px; background:var(--color-surface);">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-family:var(--font-heading); font-size:17px;">Drag in from your library</span>
+            <input placeholder="Search recipes…" style="min-height:34px; width:240px; padding:5px 14px; font-size:13px; background:var(--color-bg); border:1px solid var(--color-divider); border-radius:999px; color:var(--color-text);">
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <sc-for list="{{ libraryChips }}" as="c" hint-placeholder-count="6">
+              <span style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px; border-radius:999px; background:var(--color-bg); border:1px solid var(--color-divider); font-size:13px; cursor:grab; white-space:nowrap;">{{ c.title }}<span style="opacity:0.5; font-size:11px; white-space:nowrap;">{{ c.time }}</span></span>
+            </sc-for>
+          </div>
+        </div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── Grocery list ─────────────── -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font-size:12px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.55;">/grocery-list — Grocery list</div>
+    <div data-screen-label="Grocery list" style="width:1200px; background:var(--color-bg); border-radius:24px; overflow:hidden; box-shadow:var(--shadow-md);">
+
+      <div style="display:flex; align-items:center; gap:var(--space-4); padding:var(--space-3) var(--space-6); background:var(--color-neutral-100); border-bottom:1px solid var(--color-divider);">
+        <span style="font-family:var(--font-heading); font-size:19px; margin-right:var(--space-4);">Dinner Planner</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Recipes</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Planner</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; background:var(--color-accent-200); color:var(--color-accent-800);">Grocery list</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Ingredients</span>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:var(--space-6); padding:var(--space-6);">
+        <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:var(--space-4); flex-wrap:wrap;">
+          <div>
+            <h1 style="font-size:32px; margin:0;">Grocery list</h1>
+            <div style="font-size:13px; opacity:0.6; margin-top:2px;">From 5 dinners, Sep 21 – Sep 27</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:var(--space-3);">
+            <span style="font-size:13px; opacity:0.7;">{{ gatheredLabel }}</span>
+            <div style="width:180px; height:8px; border-radius:999px; background:var(--color-surface); overflow:hidden;">
+              <div style="{{ progressStyle }}"></div>
+            </div>
+            <a href="#" style="font-size:13px;">Edit this week's plan</a>
+          </div>
+        </div>
+
+        <div style="padding:var(--space-4); border-radius:26px; background:var(--color-surface);">
+          <div style="{{ groceryGridStyle }}">
+            <sc-for list="{{ groceries }}" as="g" hint-placeholder-count="12">
+              <div style="display:flex; align-items:center; gap:12px; padding:9px 4px; border-bottom:1px solid color-mix(in srgb, var(--color-text) 8%, transparent);">
+                <span onClick="{{ g.toggle }}" style="{{ g.boxStyle }}">{{ g.check }}</span>
+                <span style="{{ g.qtyStyle }}">{{ g.qty }}</span>
+                <span style="{{ g.nameStyle }}">{{ g.name }}</span>
+                <span style="margin-left:auto; font-size:11px; opacity:0.45;">{{ g.from }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:var(--space-2);">
+          <input placeholder="Add an item — e.g. paper towels" style="flex:1; min-height:40px; padding:7px 18px; font-size:14px; background:var(--color-surface); border:1px solid var(--color-divider); border-radius:999px; color:var(--color-text);">
+          <input placeholder="Qty" style="width:80px; min-height:40px; padding:7px 16px; font-size:14px; background:var(--color-surface); border:1px solid var(--color-divider); border-radius:999px; color:var(--color-text);">
+          <input placeholder="Unit" style="width:90px; min-height:40px; padding:7px 16px; font-size:14px; background:var(--color-surface); border:1px solid var(--color-divider); border-radius:999px; color:var(--color-text);">
+          <button style="padding:11px 24px; border-radius:999px; border:none; background:var(--color-accent); color:var(--color-bg); font-family:var(--font-heading); font-size:14px; cursor:pointer;" style-hover="background:var(--color-accent-600)">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── Ingredient library ─────────────── -->
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="font-size:12px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.55;">/ingredients — Ingredient library</div>
+    <div data-screen-label="Ingredient library" style="width:1200px; background:var(--color-bg); border-radius:24px; overflow:hidden; box-shadow:var(--shadow-md);">
+
+      <div style="display:flex; align-items:center; gap:var(--space-4); padding:var(--space-3) var(--space-6); background:var(--color-neutral-100); border-bottom:1px solid var(--color-divider);">
+        <span style="font-family:var(--font-heading); font-size:19px; margin-right:var(--space-4);">Dinner Planner</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Recipes</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Planner</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; opacity:0.7;">Grocery list</span>
+        <span style="font-size:14px; padding:6px 14px; border-radius:999px; background:var(--color-accent-200); color:var(--color-accent-800);">Ingredients</span>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:var(--space-6); padding:var(--space-6); max-width:820px;">
+        <div>
+          <h1 style="font-size:32px; margin:0;">Ingredient library</h1>
+          <div style="font-size:13px; opacity:0.6; margin-top:2px;">Names and default units reused when you write a recipe.</div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:var(--space-2);">
+          <input placeholder="Ingredient name" style="flex:1; min-height:40px; padding:7px 18px; font-size:14px; background:var(--color-surface); border:1px solid var(--color-divider); border-radius:999px; color:var(--color-text);">
+          <input placeholder="Default unit" style="width:140px; min-height:40px; padding:7px 16px; font-size:14px; background:var(--color-surface); border:1px solid var(--color-divider); border-radius:999px; color:var(--color-text);">
+          <button style="padding:11px 24px; border-radius:999px; border:none; background:var(--color-accent); color:var(--color-bg); font-family:var(--font-heading); font-size:14px; cursor:pointer;" style-hover="background:var(--color-accent-600)">Add</button>
+        </div>
+
+        <div style="padding:var(--space-2) var(--space-4) var(--space-4); border-radius:26px; background:var(--color-surface);">
+          <div style="display:grid; grid-template-columns:minmax(0,1fr) 140px 150px; gap:12px; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.55; padding:var(--space-2) 4px; border-bottom:1px solid var(--color-divider);">
+            <span>Name</span><span>Default unit</span><span>Used in</span>
+          </div>
+          <sc-for list="{{ library }}" as="i" hint-placeholder-count="6">
+            <div style="display:grid; grid-template-columns:minmax(0,1fr) 140px 150px; gap:12px; align-items:center; padding:10px 4px; border-bottom:1px solid color-mix(in srgb, var(--color-text) 8%, transparent); font-size:14px;">
+              <span>{{ i.name }}</span>
+              <span style="opacity:0.7;">{{ i.unit }}</span>
+              <span style="display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; opacity:0.55;">{{ i.used }}
+                <span style="display:flex; gap:4px;">
+                  <span style="font-size:12px; color:var(--color-accent-700); cursor:pointer;">Edit</span>
+                  <span style="font-size:12px; color:#8c2f11; cursor:pointer;">Delete</span>
+                </span>
+              </span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#c67139&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#c67139&quot;,&quot;#7a8a5e&quot;,&quot;#b2622d&quot;,&quot;#8c491a&quot;],&quot;section&quot;:&quot;Theme&quot;},&quot;groceryColumns&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2,&quot;min&quot;:1,&quot;max&quot;:2,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Layout&quot;},&quot;showPlannerTray&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Layout&quot;}}">
+const RECIPES = [
+  { title:"Grilled Chicken Thighs", stars:"★★★★☆", skill:["grill-friendly","under 30 min"], cuisine:["american"], meta:"7 ingredients · 25 min · Last made Sep 12" },
+  { title:"Sheet-Pan Sausage & Peppers", stars:"★★★★★", skill:["one-pan","oven-only"], cuisine:["italian"], meta:"8 ingredients · 45 min · Last made Sep 7" },
+  { title:"Smash Burgers", stars:"★★★★★", skill:["grill-friendly","minimal prep"], cuisine:["american"], meta:"6 ingredients · 20 min · Last made Sep 14" },
+  { title:"Steak Tacos", stars:"★★★☆☆", skill:["grill-friendly"], cuisine:["mexican"], meta:"11 ingredients · 40 min · Last made Aug 30" },
+  { title:"Teriyaki Salmon", stars:"Not rated", skill:["oven-only","under 30 min"], cuisine:["japanese"], meta:"6 ingredients · 25 min · Never made" },
+  { title:"Turkey Chili", stars:"★★★★☆", skill:["one-pan"], cuisine:["american"], meta:"13 ingredients · 60 min · Last made Sep 2" },
+];
+
+const WEEK = [
+  ["Mon","Sep 21","Smash Burgers","20 min · grill","grill-friendly"],
+  ["Tue","Sep 22","Teriyaki Salmon","25 min · oven","oven-only"],
+  ["Wed","Sep 23",null,"",""],
+  ["Thu","Sep 24","Sheet-Pan Sausage & Peppers","45 min · oven","one-pan"],
+  ["Fri","Sep 25","Steak Tacos","40 min · grill","grill-friendly"],
+  ["Sat","Sep 26",null,"",""],
+  ["Sun","Sep 27","Turkey Chili","60 min · stovetop","one-pan"],
+];
+
+const GROCERIES = [
+  ["2 lb","ground beef","Smash Burgers",false],
+  ["8","brioche buns","Smash Burgers",true],
+  ["1","yellow onion","2 recipes",false],
+  ["4","salmon fillets","Teriyaki Salmon",false],
+  ["3 tbsp","soy sauce","Teriyaki Salmon",false],
+  ["2 lb","italian sausage","Sausage & Peppers",false],
+  ["3","bell peppers","Sausage & Peppers",true],
+  ["1.5 lb","flank steak","Steak Tacos",false],
+  ["12","corn tortillas","Steak Tacos",false],
+  ["1 lb","ground turkey","Turkey Chili",false],
+  ["2 cans","kidney beans","Turkey Chili",false],
+  ["","paper towels","Added by you",false],
+];
+
+const LIBRARY = [
+  ["olive oil","tbsp","4 recipes"],["yellow onion","—","5 recipes"],["garlic","clove","6 recipes"],
+  ["kosher salt","tsp","6 recipes"],["bell pepper","—","2 recipes"],["ground beef","lb","2 recipes"],
+];
+
+class Component extends DCLogic {
+  state = { checked: GROCERIES.map((g) => g[3]) };
+
+  applyAccent() {
+    const a = this.props.accent;
+    const root = document.documentElement;
+    if (a) root.style.setProperty("--color-accent", a);
+    else root.style.removeProperty("--color-accent");
+  }
+  componentDidMount() { this.applyAccent(); }
+  componentDidUpdate() { this.applyAccent(); }
+
+  renderVals() {
+    const cols = this.props.groceryColumns ?? 2;
+    const done = this.state.checked.filter(Boolean).length;
+    const pct = Math.round((done / GROCERIES.length) * 100);
+
+    return {
+      recipes: RECIPES,
+      showPlannerTray: this.props.showPlannerTray ?? true,
+      groceryGridStyle: "display:grid; grid-template-columns:repeat(" + cols + ", minmax(0,1fr)); gap:0 var(--space-8);",
+
+      detailIngredients: [
+        { qty:"2 lb", name:"italian sausage", prep:"" },
+        { qty:"3", name:"bell peppers", prep:"sliced" },
+        { qty:"1", name:"yellow onion", prep:"sliced" },
+        { qty:"2 tbsp", name:"olive oil", prep:"" },
+        { qty:"1 tsp", name:"kosher salt", prep:"" },
+        { qty:"1 tsp", name:"dried oregano", prep:"" },
+        { qty:"4 clove", name:"garlic", prep:"minced" },
+        { qty:"1 tbsp", name:"balsamic vinegar", prep:"" },
+      ],
+      detailSteps: [
+        { n:1, text:"Heat oven to 425°F." },
+        { n:2, text:"Toss sausage, peppers and onion with oil, salt and oregano on a sheet pan." },
+        { n:3, text:"Roast 30–35 minutes, tossing once halfway." },
+        { n:4, text:"Finish with the minced garlic and a splash of balsamic." },
+      ],
+
+      formRows: [
+        { qty:"2", unit:"lb", name:"italian sausage", prep:"" },
+        { qty:"3", unit:"", name:"bell peppers", prep:"sliced" },
+        { qty:"", unit:"", name:"", prep:"" },
+      ],
+
+      week: WEEK.map(([weekday, date, meal, metaText, tag]) => {
+        const filled = !!meal;
+        return {
+          weekday, date,
+          meal: filled ? meal : "+ Assign a dinner",
+          metaText: filled ? metaText : "",
+          tag: filled ? tag : "",
+          slotStyle: filled
+            ? "display:flex; flex-direction:column; gap:6px; min-height:132px; padding:14px; border-radius:22px; background:var(--color-surface); box-shadow:var(--shadow-sm);"
+            : "display:flex; flex-direction:column; gap:6px; min-height:132px; padding:14px; border-radius:22px; border:1px dashed color-mix(in srgb, var(--color-text) 28%, transparent); background:transparent; align-items:center; justify-content:center;",
+          titleStyle: filled
+            ? "font-family:var(--font-heading); font-size:15px; line-height:1.2;"
+            : "font-size:13px; color:var(--color-accent-700);",
+          metaStyle: filled ? "font-size:11px; opacity:0.55;" : "display:none;",
+          tagStyle: filled
+            ? "margin-top:auto; align-self:flex-start; font-size:10px; padding:3px 9px; border-radius:999px; background:var(--color-accent-2-100); color:var(--color-accent-2-800);"
+            : "display:none;",
+        };
+      }),
+
+      libraryChips: RECIPES.map((r) => ({ title:r.title, time:r.meta.split(" · ")[1] })),
+
+      gatheredLabel: done + " of " + GROCERIES.length + " gathered",
+      progressStyle: "height:100%; width:" + pct + "%; background:var(--color-accent-2-500); border-radius:999px;",
+
+      groceries: GROCERIES.map(([qty, name, from], i) => {
+        const on = this.state.checked[i];
+        return {
+          qty, name, from,
+          check: on ? "✓" : "",
+          toggle: () => this.setState((s) => {
+            const next = s.checked.slice();
+            next[i] = !next[i];
+            return { checked: next };
+          }),
+          boxStyle: "flex:none; width:20px; height:20px; border-radius:999px; display:grid; place-items:center; font-size:12px; cursor:pointer; " +
+            (on
+              ? "background:var(--color-accent-2-500); color:var(--color-bg); border:1px solid var(--color-accent-2-500);"
+              : "border:1.5px solid color-mix(in srgb, var(--color-text) 30%, transparent);"),
+          qtyStyle: "min-width:58px; font-size:13px; " + (on ? "opacity:0.4;" : "color:var(--color-accent-700);"),
+          nameStyle: "font-size:14px; " + (on ? "opacity:0.4; text-decoration:line-through;" : ""),
+        };
+      }),
+
+      library: LIBRARY.map(([name, unit, used]) => ({ name, unit, used })),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Check, X } from "lucide-react";
 import {
   deleteManualItem,
   removeGeneratedItem,
@@ -18,10 +19,6 @@ export type ChecklistRow = {
   itemKey?: string; // generated only
   id?: string; // manual only
 };
-
-function formatQtyUnit(quantity: string, unit: string): string {
-  return [quantity, unit].filter(Boolean).join(" ");
-}
 
 export default function GroceryChecklist({
   rangeStart,
@@ -67,37 +64,40 @@ export default function GroceryChecklist({
   }
 
   if (rows.length === 0) {
-    return <p className="text-zinc-500">Nothing on the list for this range yet.</p>;
+    return <p className="opacity-60">Nothing on the list for this range yet.</p>;
   }
 
   return (
-    <ul className="flex flex-col divide-y divide-zinc-200 rounded border border-zinc-200 bg-white">
+    <div className="o-card grid grid-cols-1 gap-x-[35.2px] sm:grid-cols-2">
       {rows.map((row) => (
-        <li key={row.key} className="flex items-center justify-between gap-3 px-4 py-2">
-          <label className="flex flex-1 items-center gap-3">
-            <input
-              type="checkbox"
-              checked={row.checked}
-              onChange={() => toggle(row)}
-              className="h-4 w-4"
-            />
-            <span className={row.checked ? "text-zinc-400 line-through" : ""}>
-              {formatQtyUnit(row.quantity, row.unit) && (
-                <span className="mr-1 text-zinc-500">{formatQtyUnit(row.quantity, row.unit)}</span>
-              )}
-              {row.name}
-            </span>
-          </label>
+        <div key={row.key} className="o-rule flex items-center gap-3 py-2.5">
+          <button
+            type="button"
+            onClick={() => toggle(row)}
+            aria-label={row.checked ? `Mark ${row.name} ungathered` : `Mark ${row.name} gathered`}
+            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
+              row.checked ? "bg-accent-2-500 text-bg" : "border-[1.5px]"
+            }`}
+            style={row.checked ? undefined : { borderColor: "color-mix(in srgb, var(--color-text) 30%, transparent)" }}
+          >
+            {row.checked && <Check strokeWidth={3} size={12} />}
+          </button>
+          <span className="text-[13px] text-accent-700" style={{ minWidth: "58px" }}>
+            {[row.quantity, row.unit].filter(Boolean).join(" ")}
+          </span>
+          <span className={`flex-1 text-[14px] ${row.checked ? "opacity-40 line-through" : ""}`}>
+            {row.name}
+          </span>
           <button
             type="button"
             onClick={() => remove(row)}
-            className="text-zinc-400 hover:text-red-600"
+            className="opacity-40 hover:opacity-100"
             aria-label={`Remove ${row.name}`}
           >
-            ✕
+            <X strokeWidth={2.75} size={14} />
           </button>
-        </li>
+        </div>
       ))}
-    </ul>
+    </div>
   );
 }

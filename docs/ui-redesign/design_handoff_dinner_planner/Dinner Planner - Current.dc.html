@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#e8e8ea; font-family:"Geist",system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:#2563eb; text-decoration:none; }
+  a:hover { text-decoration:underline; }
+</style>
+</helmet>
+
+<div style="display:flex; flex-direction:column; gap:48px; padding:40px; font-family:'Geist',system-ui,sans-serif; color:#18181b;">
+
+  <div style="display:flex; flex-direction:column; gap:6px;">
+    <div style="font-family:'Geist Mono',monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#71717a;">Current state — recreated from src/app</div>
+    <div style="font-size:28px; font-weight:600; letter-spacing:-0.02em;">Family Dinner Planner, as it is today</div>
+  </div>
+
+  <sc-for list="{{ screens }}" as="screen" hint-placeholder-count="6">
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div style="display:flex; align-items:baseline; gap:10px;">
+        <span style="font-family:'Geist Mono',monospace; font-size:12px; color:#52525b;">{{ screen.route }}</span>
+        <span style="font-size:12px; color:#a1a1aa;">{{ screen.file }}</span>
+      </div>
+      <div data-screen-label="{{ screen.label }}" style="width:980px; background:#fafafa; border:1px solid #d4d4d8; border-radius:6px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+
+        <div style="border-bottom:1px solid #e4e4e7; background:#fff;">
+          <div style="margin:0 auto; max-width:768px; display:flex; align-items:center; gap:16px; padding:12px 24px;">
+            <span style="font-weight:600; font-size:16px;">🍽️ Dinner Planner</span>
+            <span style="font-size:14px; color:#52525b;">Recipes</span>
+            <span style="font-size:14px; color:#52525b;">Planner</span>
+            <span style="font-size:14px; color:#52525b;">Ingredients</span>
+            <span style="font-size:14px; color:#52525b;">Grocery List</span>
+          </div>
+        </div>
+
+        <div style="margin:0 auto; width:100%; max-width:768px; padding:24px;">
+          {{ screen.body }}
+        </div>
+      </div>
+    </div>
+  </sc-for>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const Z = { bg:"#fafafa", b200:"#e4e4e7", b300:"#d4d4d8", b400:"#a1a1aa", b500:"#71717a", b600:"#52525b", b100:"#f4f4f5", ink:"#18181b", blue:"#2563eb" };
+const h = React.createElement;
+
+const S = {
+  col: (gap) => ({ display:"flex", flexDirection:"column", gap: gap + "px" }),
+  h1: { fontSize:"20px", lineHeight:"28px", fontWeight:600, margin:0 },
+  label: { fontSize:"14px", fontWeight:500 },
+  labelSm: { fontSize:"14px", fontWeight:500 },
+  input: { border:"1px solid " + Z.b300, borderRadius:"4px", padding:"4px 8px", fontSize:"14px", fontFamily:"inherit", background:"#fff", color:Z.ink },
+  inputLg: { border:"1px solid " + Z.b300, borderRadius:"4px", padding:"8px 12px", fontSize:"16px", fontFamily:"inherit", background:"#fff", color:Z.ink, width:"100%", boxSizing:"border-box" },
+  btnOutline: { border:"1px solid " + Z.b300, borderRadius:"4px", padding:"6px 12px", fontSize:"14px", fontWeight:500, background:"transparent", fontFamily:"inherit", cursor:"pointer", color:Z.ink },
+  btnDark: { border:"none", borderRadius:"4px", padding:"6px 12px", fontSize:"14px", fontWeight:500, background:"#18181b", color:"#fff", fontFamily:"inherit", cursor:"pointer" },
+  btnDarkLg: { border:"none", borderRadius:"4px", padding:"8px 16px", fontSize:"16px", fontWeight:500, background:"#18181b", color:"#fff", fontFamily:"inherit", cursor:"pointer", alignSelf:"flex-start" },
+  btnRed: { border:"1px solid #fecaca", borderRadius:"4px", padding:"6px 12px", fontSize:"14px", fontWeight:500, color:"#dc2626", background:"transparent", fontFamily:"inherit", cursor:"pointer" },
+  listCard: { display:"flex", flexDirection:"column", borderRadius:"4px", border:"1px solid " + Z.b200, background:"#fff", listStyle:"none", margin:0, padding:0 },
+  link: { fontSize:"14px", color:Z.blue },
+};
+
+function field(id, label, control) {
+  return h("div", { key:id, style:{ display:"flex", flexDirection:"column", gap:"4px" } },
+    h("label", { style:S.label }, label), control);
+}
+
+function sel(opts, w) {
+  return h("select", { defaultValue:opts[0], style:{ ...S.input, width:w } }, opts.map((o) => h("option", { key:o }, o)));
+}
+
+const RECIPES = [
+  { t:"Grilled Chicken Thighs", r:4, skill:["grill-friendly","under 30 min"], cuisine:["american"], n:7 },
+  { t:"Sheet-Pan Sausage & Peppers", r:5, skill:["one-pan","oven-only"], cuisine:["italian"], n:8 },
+  { t:"Smash Burgers", r:5, skill:["grill-friendly","minimal prep"], cuisine:["american"], n:6 },
+  { t:"Steak Tacos", r:3, skill:["grill-friendly"], cuisine:["mexican"], n:11 },
+  { t:"Teriyaki Salmon", r:0, skill:["oven-only","under 30 min"], cuisine:["japanese"], n:6 },
+  { t:"Turkey Chili", r:4, skill:["one-pan"], cuisine:["american"], n:13 },
+];
+
+const DAYS = [
+  ["Monday, Sep 21", "Smash Burgers"],
+  ["Tuesday, Sep 22", "Teriyaki Salmon"],
+  ["Wednesday, Sep 23", null],
+  ["Thursday, Sep 24", "Sheet-Pan Sausage & Peppers"],
+  ["Friday, Sep 25", "Steak Tacos"],
+  ["Saturday, Sep 26", null],
+  ["Sunday, Sep 27", "Turkey Chili"],
+];
+
+const GROCERIES = [
+  ["2 lb","ground beef",false],["8","brioche buns",true],["1","yellow onion",false],
+  ["4","salmon fillets",false],["3 tbsp","soy sauce",false],["2 lb","italian sausage",false],
+  ["3","bell peppers",true],["1.5 lb","flank steak",false],["12","corn tortillas",false],
+  ["1 lb","ground turkey",false],["2 cans","kidney beans",false],["","paper towels",false],
+];
+
+const LIBRARY = [["olive oil","tbsp"],["yellow onion",""],["garlic","clove"],["kosher salt","tsp"],["bell pepper",""],["ground beef","lb"]];
+
+class Component extends DCLogic {
+  renderVals() {
+    const filterRow = (fields) => h("form", { style:{ display:"flex", flexWrap:"wrap", alignItems:"flex-end", gap:"12px", fontSize:"14px" } }, fields);
+
+    // ── Recipe library ──────────────────────────────────────────────
+    const recipesBody = h("div", { style:S.col(24) },
+      h("div", { style:{ display:"flex", alignItems:"center", justifyContent:"space-between" } },
+        h("h1", { style:S.h1 }, "Recipe Library"),
+        h("button", { style:{ ...S.btnDark, padding:"8px 12px" } }, "+ Add Recipe")),
+      filterRow([
+        field("q","Search", h("input", { placeholder:"Title or ingredient", style:S.input })),
+        field("c","Filter by cuisine/diet tag", h("input", { placeholder:"mexican", style:S.input })),
+        field("s","Sort by", sel(["Title","Rating","Last made","Cuisine"])),
+        field("k","Filter by skill tag", h("input", { placeholder:"grill-friendly", style:S.input })),
+        h("button", { key:"apply", style:S.btnOutline }, "Apply"),
+      ]),
+      h("ul", { style:S.listCard }, RECIPES.map((r, i) =>
+        h("li", { key:r.t, style:{ borderTop: i ? "1px solid " + Z.b200 : "none" } },
+          h("div", { style:{ display:"flex", flexDirection:"column", gap:"4px", padding:"12px 16px" } },
+            h("div", { style:{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:"8px" } },
+              h("span", { style:{ fontWeight:500, fontSize:"16px" } }, r.t),
+              r.r ? h("span", { style:{ fontSize:"14px", color:"#f59e0b" } }, "★".repeat(r.r) + "☆".repeat(5 - r.r))
+                  : h("span", { style:{ fontSize:"14px", color:Z.b400 } }, "Not rated")),
+            h("div", { style:{ display:"flex", flexWrap:"wrap", gap:"4px", fontSize:"12px", color:Z.b500, alignItems:"center" } },
+              r.skill.map((t) => h("span", { key:t, style:{ borderRadius:"999px", background:Z.b100, padding:"2px 8px" } }, t)),
+              r.cuisine.map((t) => h("span", { key:t, style:{ borderRadius:"999px", background:"#eff6ff", color:"#1d4ed8", padding:"2px 8px" } }, t)),
+              h("span", { key:"n" }, r.n + " ingredients")))))));
+
+    // ── Recipe detail ───────────────────────────────────────────────
+    const detailBody = h("div", { style:S.col(24) },
+      h("div", { style:{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:"16px" } },
+        h("div", null,
+          h("h1", { style:S.h1 }, "Sheet-Pan Sausage & Peppers"),
+          h("a", { href:"#", style:S.link }, "Original source")),
+        h("div", { style:{ display:"flex", gap:"8px" } },
+          h("button", { style:S.btnOutline }, "Edit"),
+          h("button", { style:S.btnRed }, "Delete"))),
+      h("div", { style:{ display:"flex", flexWrap:"wrap", alignItems:"center", gap:"16px", fontSize:"14px", color:Z.b600 } },
+        h("span", null, "Serves 4"), h("span", null, "Prep 10 min"), h("span", null, "Cook 35 min"), h("span", null, "Last made 9/7/2026")),
+      h("div", { style:{ display:"flex", flexWrap:"wrap", gap:"4px" } },
+        h("span", { style:{ borderRadius:"999px", background:Z.b100, padding:"2px 8px", fontSize:"12px" } }, "one-pan"),
+        h("span", { style:{ borderRadius:"999px", background:Z.b100, padding:"2px 8px", fontSize:"12px" } }, "oven-only"),
+        h("span", { style:{ borderRadius:"999px", background:"#eff6ff", color:"#1d4ed8", padding:"2px 8px", fontSize:"12px" } }, "italian")),
+      h("div", { style:{ display:"flex", flexWrap:"wrap", alignItems:"center", gap:"16px", borderRadius:"4px", border:"1px solid " + Z.b200, background:"#fff", padding:"16px" } },
+        h("div", { style:{ display:"flex", alignItems:"center", gap:"8px" } },
+          h("label", { style:S.label }, "Rating"), sel(["5 stars","Not rated","1 star","2 stars","3 stars","4 stars"]),
+          h("button", { style:{ ...S.btnOutline, padding:"4px 8px" } }, "Update")),
+        h("button", { style:{ borderRadius:"4px", padding:"6px 12px", fontSize:"14px", fontWeight:500, background:"#dcfce7", color:"#15803d", border:"none", fontFamily:"inherit", cursor:"pointer" } }, "✓ Make again"),
+        h("button", { style:S.btnOutline }, "Mark made today")),
+      h("div", null,
+        h("h2", { style:{ fontSize:"16px", fontWeight:600, margin:"0 0 8px" } }, "Ingredients"),
+        h("ul", { style:{ display:"flex", flexDirection:"column", gap:"4px", margin:0, paddingLeft:"0", listStyle:"none" } },
+          ["2 lb italian sausage","3 bell peppers, sliced","1 yellow onion, sliced","2 tbsp olive oil","1 tsp kosher salt","1 tsp dried oregano","4 clove garlic, minced","1 tbsp balsamic vinegar"]
+            .map((t) => h("li", { key:t, style:{ fontSize:"14px" } }, t)))),
+      h("div", null,
+        h("h2", { style:{ fontSize:"16px", fontWeight:600, margin:"0 0 8px" } }, "Steps"),
+        h("p", { style:{ whiteSpace:"pre-wrap", fontSize:"14px", margin:0 } },
+          "1. Heat oven to 425°F.\n2. Toss sausage, peppers and onion with oil, salt and oregano on a sheet pan.\n3. Roast 30–35 min, tossing once.\n4. Finish with garlic and a splash of balsamic.")),
+      h("a", { href:"#", style:S.link }, "← Back to library"));
+
+    // ── Add / edit recipe ───────────────────────────────────────────
+    const ingRow = (name, qty, unit, prep) => h("div", { key:name, style:{ display:"flex", gap:"8px" } },
+      h("input", { defaultValue:name, placeholder:"Name (e.g. onion)", style:{ ...S.inputLg, flex:1, minWidth:0 } }),
+      h("input", { defaultValue:qty, placeholder:"Qty", style:{ ...S.inputLg, width:"64px" } }),
+      h("input", { defaultValue:unit, placeholder:"Unit", style:{ ...S.inputLg, width:"80px" } }),
+      h("input", { defaultValue:prep, placeholder:"Prep (e.g. chopped)", style:{ ...S.inputLg, width:"128px" } }),
+      h("button", { style:{ padding:"0 8px", color:Z.b500, background:"none", border:"none", cursor:"pointer", fontSize:"14px" } }, "✕"));
+
+    const formBody = h("div", { style:S.col(24) },
+      h("h1", { style:S.h1 }, "Add a Recipe"),
+      h("form", { style:S.col(24) },
+        field("title","Title *", h("input", { style:S.inputLg })),
+        h("div", { style:S.col(8) },
+          h("span", { style:S.label }, "Ingredients *"),
+          h("div", { style:S.col(4) },
+            h("label", { style:{ fontSize:"12px", fontWeight:500, color:Z.b600 } }, "Add from ingredient library"),
+            h("div", { style:{ display:"flex", gap:"8px" } },
+              h("input", { placeholder:"Start typing an ingredient...", style:{ ...S.inputLg, flex:1, minWidth:0 } }),
+              h("button", { style:{ ...S.btnOutline, padding:"8px 12px", opacity:0.4 } }, "Add"))),
+          h("div", { style:S.col(8) },
+            ingRow("italian sausage","2","lb",""),
+            ingRow("bell peppers","3","","sliced"),
+            ingRow("","","","")),
+          h("button", { style:{ alignSelf:"flex-start", fontSize:"14px", fontWeight:500, color:Z.blue, background:"none", border:"none", cursor:"pointer", padding:0 } }, "+ Add ingredient")),
+        field("steps","Steps", h("textarea", { rows:6, placeholder:"1. Preheat grill...\n2. ...", style:{ ...S.inputLg, resize:"vertical" } })),
+        h("div", { style:{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:"16px" } },
+          field("servings","Servings", h("input", { type:"number", style:S.inputLg })),
+          field("prep","Prep (min)", h("input", { type:"number", style:S.inputLg })),
+          field("cook","Cook (min)", h("input", { type:"number", style:S.inputLg }))),
+        h("div", { style:S.col(4) },
+          h("label", { style:S.label }, "Skill / equipment tags"),
+          h("input", { placeholder:"grill-friendly, one-pan, under 30 min", style:S.inputLg }),
+          h("span", { style:{ fontSize:"12px", color:Z.b500 } }, "Comma-separated.")),
+        h("div", { style:S.col(4) },
+          h("label", { style:S.label }, "Cuisine / dietary tags"),
+          h("input", { placeholder:"mexican, vegetarian", style:S.inputLg }),
+          h("span", { style:{ fontSize:"12px", color:Z.b500 } }, "Comma-separated.")),
+        field("src","Source URL", h("input", { placeholder:"https://...", style:S.inputLg })),
+        h("button", { style:S.btnDarkLg }, "Save Recipe")));
+
+    // ── Planner ─────────────────────────────────────────────────────
+    const recipeTitles = RECIPES.map((r) => r.t);
+    const plannerBody = h("div", { style:S.col(24) },
+      h("h1", { style:S.h1 }, "Dinner Planner"),
+      filterRow([
+        field("start","Start date", h("input", { type:"date", defaultValue:"2026-09-21", style:S.input })),
+        field("days","Days (1-7)", h("input", { type:"number", defaultValue:7, style:{ ...S.input, width:"80px" } })),
+        h("button", { key:"v", style:S.btnOutline }, "View"),
+        h("a", { key:"g", href:"#", style:S.link }, "Grocery list for this range"),
+      ]),
+      h("ul", { style:S.listCard }, DAYS.map(([day, meal], i) =>
+        h("li", { key:day, style:{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:"8px", padding:"12px 16px", borderTop: i ? "1px solid " + Z.b200 : "none" } },
+          h("div", { style:{ fontWeight:500, fontSize:"16px" } }, day),
+          meal
+            ? h("div", { style:{ display:"flex", flexWrap:"wrap", alignItems:"center", gap:"8px" } },
+                h("a", { href:"#", style:{ ...S.link, fontWeight:500 } }, meal),
+                sel([meal].concat(recipeTitles.filter((t) => t !== meal))),
+                h("button", { style:{ ...S.btnOutline, padding:"4px 8px" } }, "Swap"),
+                h("button", { style:{ ...S.btnRed, padding:"4px 8px" } }, "Remove"))
+            : h("div", { style:{ display:"flex", alignItems:"center", gap:"8px" } },
+                sel(["Choose a recipe…"].concat(recipeTitles)),
+                h("button", { style:S.btnDark }, "Assign"))))));
+
+    // ── Grocery list ────────────────────────────────────────────────
+    const groceryBody = h("div", { style:S.col(24) },
+      h("h1", { style:S.h1 }, "Grocery List"),
+      filterRow([
+        field("gstart","Start date", h("input", { type:"date", defaultValue:"2026-09-21", style:S.input })),
+        field("gdays","Days (1-7)", h("input", { type:"number", defaultValue:7, style:{ ...S.input, width:"80px" } })),
+        h("button", { key:"v", style:S.btnOutline }, "View"),
+        h("a", { key:"p", href:"#", style:S.link }, "Edit this week's plan"),
+      ]),
+      h("ul", { style:S.listCard }, GROCERIES.map(([qty, name, checked], i) =>
+        h("li", { key:name, style:{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:"12px", padding:"8px 16px", borderTop: i ? "1px solid " + Z.b200 : "none" } },
+          h("label", { style:{ display:"flex", flex:1, alignItems:"center", gap:"12px", fontSize:"16px" } },
+            h("input", { type:"checkbox", defaultChecked:checked, style:{ height:"16px", width:"16px" } }),
+            h("span", { style: checked ? { color:Z.b400, textDecoration:"line-through" } : null,
+              children:[ qty ? h("span", { key:"q", style:{ marginRight:"4px", color:Z.b500 } }, qty) : null, name ] })),
+          h("button", { style:{ color:Z.b400, background:"none", border:"none", cursor:"pointer", fontSize:"14px" } }, "✕")))),
+      h("form", { style:{ display:"flex", flexWrap:"wrap", alignItems:"flex-end", gap:"8px", fontSize:"14px" } },
+        field("add","Add item", h("input", { placeholder:"e.g. paper towels", style:S.input })),
+        h("input", { key:"q", placeholder:"Qty", style:{ ...S.input, width:"64px" } }),
+        h("input", { key:"u", placeholder:"Unit", style:{ ...S.input, width:"80px" } }),
+        h("button", { key:"a", style:S.btnDark }, "Add")));
+
+    // ── Ingredient library ──────────────────────────────────────────
+    const ingredientsBody = h("div", { style:S.col(24) },
+      h("h1", { style:S.h1 }, "Ingredient Library"),
+      h("form", { style:{ display:"flex", flexWrap:"wrap", alignItems:"flex-end", gap:"8px", borderRadius:"4px", border:"1px solid " + Z.b200, background:"#fff", padding:"16px" } },
+        field("n","Name", h("input", { style:S.input })),
+        field("u","Default unit", h("input", { style:S.input })),
+        h("button", { key:"a", style:S.btnOutline }, "Add ingredient")),
+      h("ul", { style:{ display:"flex", flexDirection:"column", gap:"8px", listStyle:"none", margin:0, padding:0 } },
+        LIBRARY.map(([name, unit]) =>
+          h("li", { key:name, style:{ display:"flex", flexWrap:"wrap", alignItems:"flex-end", gap:"8px", borderRadius:"4px", border:"1px solid " + Z.b200, background:"#fff", padding:"12px" } },
+            h("div", { style:{ display:"flex", flexDirection:"column", gap:"4px" } },
+              h("label", { style:{ fontSize:"12px", color:Z.b500 } }, "Name"),
+              h("input", { defaultValue:name, style:S.input })),
+            h("div", { style:{ display:"flex", flexDirection:"column", gap:"4px" } },
+              h("label", { style:{ fontSize:"12px", color:Z.b500 } }, "Default unit"),
+              h("input", { defaultValue:unit, style:S.input })),
+            h("button", { style:S.btnOutline }, "Save"),
+            h("button", { style:S.btnRed }, "Delete")))));
+
+    return {
+      screens: [
+        { label:"Recipe library", route:"/recipes", file:"recipes/page.tsx", body:recipesBody },
+        { label:"Recipe detail", route:"/recipes/[id]", file:"recipes/[id]/page.tsx", body:detailBody },
+        { label:"Add recipe", route:"/recipes/new", file:"recipes/RecipeForm.tsx", body:formBody },
+        { label:"Planner", route:"/planner", file:"planner/page.tsx", body:plannerBody },
+        { label:"Grocery list", route:"/grocery-list", file:"grocery-list/page.tsx", body:groceryBody },
+        { label:"Ingredient library", route:"/ingredients", file:"ingredients/page.tsx", body:ingredientsBody },
+      ],
+    };
+  }
+}
+
+</script>
+</body>
+</html>

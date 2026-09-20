@@ -74,57 +74,82 @@ export default async function GroceryListPage({
     })),
   ];
 
+  const gatheredCount = rows.filter((r) => r.checked).length;
+  const progressPct = rows.length > 0 ? Math.round((gatheredCount / rows.length) * 100) : 0;
+
   const boundAddManualItem = addManualItem.bind(null, rangeStart, rangeEnd);
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Grocery List</h1>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-[32px]">Grocery list</h1>
+          <p className="text-[13px] opacity-60">
+            From {plannedMeals.length} dinners,{" "}
+            {startDate.toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" })} –{" "}
+            {endDate.toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" })}
+          </p>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">
+              {gatheredCount} of {rows.length} gathered
+            </span>
+            <div className="h-[8px] w-[180px] rounded-full bg-surface">
+              <div
+                className="h-[8px] rounded-full bg-accent-2-500"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+          </div>
+          <Link
+            href={`/planner?start=${rangeStart}&days=${dayCount}`}
+            className="text-sm text-accent-700 hover:underline"
+          >
+            Edit this week&apos;s plan
+          </Link>
+        </div>
+      </div>
 
-      <form className="flex flex-wrap items-end gap-3 text-sm" method="get">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="start" className="font-medium">
-            Start date
-          </label>
-          <input
-            id="start"
-            name="start"
-            type="date"
-            defaultValue={rangeStart}
-            className="rounded border border-zinc-300 px-2 py-1"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="days" className="font-medium">
-            Days (1-7)
-          </label>
-          <input
-            id="days"
-            name="days"
-            type="number"
-            min={1}
-            max={7}
-            defaultValue={dayCount}
-            className="w-20 rounded border border-zinc-300 px-2 py-1"
-          />
-        </div>
-        <button
-          type="submit"
-          className="rounded border border-zinc-300 px-3 py-1.5 font-medium hover:bg-zinc-100"
-        >
-          View
-        </button>
-        <Link
-          href={`/planner?start=${rangeStart}&days=${dayCount}`}
-          className="text-sm text-blue-600 hover:underline"
-        >
-          Edit this week&apos;s plan
-        </Link>
-      </form>
+      <details className="text-sm opacity-70">
+        <summary className="cursor-pointer">Custom range</summary>
+        <form className="mt-2 flex flex-wrap items-end gap-3" method="get">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="start" className="text-xs font-medium">
+              Start date
+            </label>
+            <input
+              id="start"
+              name="start"
+              type="date"
+              defaultValue={rangeStart}
+              className="o-input"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="days" className="text-xs font-medium">
+              Days (1-7)
+            </label>
+            <input
+              id="days"
+              name="days"
+              type="number"
+              min={1}
+              max={7}
+              defaultValue={dayCount}
+              className="o-input w-20"
+            />
+          </div>
+          <button type="submit" className="o-pill border border-divider">
+            View
+          </button>
+        </form>
+      </details>
 
       {plannedMeals.length === 0 && generated.length === 0 && manualItems.length === 0 ? (
-        <p className="text-zinc-500">
+        <p className="opacity-60">
           No dinners planned for this range yet.{" "}
-          <Link href={`/planner?start=${rangeStart}&days=${dayCount}`} className="text-blue-600 hover:underline">
+          <Link href={`/planner?start=${rangeStart}&days=${dayCount}`} className="text-accent-700 hover:underline">
             Plan some dinners
           </Link>{" "}
           to generate a list, or add items manually below.
@@ -138,9 +163,9 @@ export default async function GroceryListPage({
         />
       )}
 
-      <form action={boundAddManualItem} className="flex flex-wrap items-end gap-2 text-sm">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="add-name" className="font-medium">
+      <form action={boundAddManualItem} className="flex flex-wrap items-end gap-2">
+        <div className="flex flex-1 min-w-[200px] flex-col gap-1">
+          <label htmlFor="add-name" className="text-sm font-medium">
             Add item
           </label>
           <input
@@ -148,25 +173,24 @@ export default async function GroceryListPage({
             name="name"
             placeholder="e.g. paper towels"
             required
-            className="rounded border border-zinc-300 px-2 py-1"
+            className="o-input w-full"
           />
         </div>
         <input
           name="quantity"
           placeholder="Qty"
           aria-label="Quantity"
-          className="w-16 rounded border border-zinc-300 px-2 py-1"
+          className="o-input"
+          style={{ width: "80px" }}
         />
         <input
           name="unit"
           placeholder="Unit"
           aria-label="Unit"
-          className="w-20 rounded border border-zinc-300 px-2 py-1"
+          className="o-input"
+          style={{ width: "90px" }}
         />
-        <button
-          type="submit"
-          className="rounded bg-zinc-900 px-3 py-1.5 font-medium text-white hover:bg-zinc-700"
-        >
+        <button type="submit" className="o-pill bg-accent text-bg">
           Add
         </button>
       </form>
