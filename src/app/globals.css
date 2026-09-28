@@ -57,6 +57,67 @@
   --shadow-sm: 0 1px 2px color-mix(in srgb, #2e2b25 14%, transparent);
   --shadow-md: 0 3px 10px color-mix(in srgb, #2e2b25 16%, transparent);
   --shadow-lg: 0 12px 32px color-mix(in srgb, #2e2b25 22%, transparent);
+
+  /* App-shell additions (responsive redesign) */
+  --color-on-accent: #fffaf3;
+  --color-glass: color-mix(in srgb, #f9f4ed 78%, transparent);
+  --color-card-hover: color-mix(in srgb, #ebddc5 70%, #f9f4ed);
+  --tabbar-h: 64px;
+  color-scheme: light;
+}
+
+/* ── Dark theme ──────────────────────────────────────────────────────────
+   Follows the OS setting. Surfaces go to warm charcoal; the tint scales are
+   mirrored (100↔900) so "tint bg + deep text" pairs like
+   bg-accent-200 text-accent-800 stay legible without per-component changes. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #1b1815;
+    --color-surface: #27221d;
+    --color-text: #f2e8d9;
+    --color-divider: color-mix(in srgb, #f2e8d9 16%, transparent);
+    --color-rule: color-mix(in srgb, #f2e8d9 9%, transparent);
+    --color-danger: #f08a68;
+    --color-accent: #d67f48;
+
+    --color-neutral-100: #211d19;
+    --color-neutral-200: #2e2b25;
+    --color-neutral-300: #474238;
+    --color-neutral-400: #645c50;
+    --color-neutral-500: #82796a;
+    --color-neutral-600: #a19786;
+    --color-neutral-700: #c0b6a5;
+    --color-neutral-800: #dcd3c4;
+    --color-neutral-900: #eee7db;
+
+    --color-accent-100: #33200f;
+    --color-accent-200: #4a2c15;
+    --color-accent-300: #643312;
+    --color-accent-400: #8c491a;
+    --color-accent-500: #b2622d;
+    --color-accent-600: #d67f48;
+    --color-accent-700: #f6a06b;
+    --color-accent-800: #ffc6a5;
+    --color-accent-900: #ffe1d0;
+
+    --color-accent-2-100: #242a19;
+    --color-accent-2-200: #323c24;
+    --color-accent-2-300: #3d472b;
+    --color-accent-2-400: #56633f;
+    --color-accent-2-500: #8fa073;
+    --color-accent-2-600: #aebf92;
+    --color-accent-2-700: #ccdbb2;
+    --color-accent-2-800: #e1eecc;
+    --color-accent-2-900: #f0fae1;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 3px 10px rgb(0 0 0 / 0.45);
+    --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.55);
+
+    --color-glass: color-mix(in srgb, #211d19 78%, transparent);
+    --color-card-hover: #2f2923;
+    color-scheme: dark;
+  }
 }
 
 /* ── Tailwind v4 mapping ─────────────────────────────────────────────────
@@ -75,6 +136,8 @@
   --color-danger: var(--color-danger);
   --color-accent: var(--color-accent);
   --color-accent-2: var(--color-accent-2);
+  --color-on-accent: var(--color-on-accent);
+  --color-glass: var(--color-glass);
 
   --color-neutral-100: var(--color-neutral-100);
   --color-neutral-200: var(--color-neutral-200);
@@ -126,11 +189,18 @@
    generated font variables on <html> so the local files win over the
    webfont names above. */
 
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-body);
 }
+
+button, [role="button"], summary, a { touch-action: manipulation; }
 
 h1, h2, h3, h4 {
   font-family: var(--font-heading);
@@ -148,59 +218,160 @@ h1, h2, h3, h4 {
   color: var(--color-accent-900);
 }
 
-/* ── The four repeating shapes ─────────────────────────────────────────── */
+/* Component classes live in the components layer so Tailwind utilities
+   (e.g. `pl-10` on an .o-input, `px-5` on an .o-pill) can override them. */
+@layer components {
+  /* ── The four repeating shapes ─────────────────────────────────────────── */
 
-/* Pill button. Compose with a fill: bg-accent text-bg, or border border-divider. */
-.o-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  border-radius: 999px;
-  border: none;
-  padding: 10px 20px;
-  font-family: var(--font-heading);
-  font-size: 14px;
-  line-height: 1;
-  cursor: pointer;
-  transition: background-color 120ms ease;
+  /* Pill button. Compose with a fill: bg-accent text-bg, or border border-divider. */
+  .o-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border-radius: 999px;
+    border: none;
+    padding: 10px 20px;
+    font-family: var(--font-heading);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 120ms ease;
+  }
+  .o-pill:disabled { opacity: 0.45; cursor: default; }
+  .o-pill:active:not(:disabled) { transform: scale(0.97); }
+  .o-pill { transition: background-color 120ms ease, transform 120ms ease, opacity 120ms ease; }
+
+  /* Pill input. */
+  .o-input {
+    min-height: 40px;
+    padding: 7px 18px;
+    font-size: 14px;
+    min-width: 0;
+    font-family: var(--font-body);
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: 1px solid var(--color-divider);
+    border-radius: 999px;
+  }
+  .o-input::placeholder { color: color-mix(in srgb, var(--color-text) 45%, transparent); }
+  /* On a surface-colored panel, swap the fill: .o-input { background: var(--color-bg) } */
+
+  /* Content card. */
+  .o-card {
+    background: var(--color-surface);
+    border-radius: 26px;
+    padding: var(--space-4);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Small label pill. Compose with a tint pair:
+     bg-[--color-accent-2-100] text-[--color-accent-2-800]  (skill / equipment)
+     bg-[--color-accent-100]   text-[--color-accent-800]    (cuisine / diet) */
+  .o-tag {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  /* Row rule used inside cards and tables. */
+  .o-rule { border-bottom: 1px solid var(--color-rule); }
+
+  /* ── Responsive app-shell utilities ────────────────────────────────────── */
+
+  /* Primary (solid accent) and quiet (outlined) button fills for .o-pill. */
+  .o-primary { background: var(--color-accent); color: var(--color-on-accent); }
+  .o-primary:hover { background: var(--color-accent-600); }
+  .o-quiet { border: 1px solid var(--color-divider); }
+  .o-quiet:hover { background: var(--color-surface); }
+  .o-danger { border: 1px solid var(--color-danger); color: var(--color-danger); }
+  .o-danger:hover { background: color-mix(in srgb, var(--color-danger) 10%, transparent); }
+
+  /* Round icon-only button; 40px hit area. */
+  .o-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 999px;
+    transition: background-color 120ms ease;
+  }
+  .o-icon-btn:hover { background: color-mix(in srgb, var(--color-text) 8%, transparent); }
+
+  /* Card that is also a link/button: lifts on hover. */
+  .o-card-link { transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease; }
+  .o-card-link:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); background: var(--color-card-hover); }
+
+  /* Kicker label above a card section. */
+  .o-kicker {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent-700);
+  }
+
+  /* Frosted bar (sticky header, mobile tab bar, mobile action bars). */
+  .o-glass {
+    background: var(--color-glass);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+    backdrop-filter: saturate(160%) blur(14px);
+  }
+
+  /* Horizontal scroller for chip/segment rows on narrow screens. */
+  .o-scroll-x {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .o-scroll-x::-webkit-scrollbar { display: none; }
+
+  /* Safe-area-aware bottom padding for fixed mobile bars. */
+  .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 8px); }
+
+  /* Main content clears the fixed tab bar on mobile. */
+  .app-main { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 24px); }
+  @media (min-width: 768px) {
+    .app-main { padding-bottom: 48px; }
+  }
+
+  /* Sticky/fixed elements that must sit just above the phone tab bar
+     (and flush with the viewport bottom once the tab bar is gone at md+). */
+  .bottom-above-tabbar { bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
+  @media (min-width: 768px) {
+    .bottom-above-tabbar { bottom: 0; }
+  }
+
+  /* Coarse pointers (phones/tablets) get roomier controls. */
+  @media (pointer: coarse) {
+    .o-input { min-height: 44px; font-size: 16px; } /* 16px stops iOS zoom-on-focus */
+    .o-pill { min-height: 44px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+
+  .o-spin { animation: o-spin 0.8s linear infinite; }
+
+  .o-fade-up { animation: o-fade-up 220ms ease both; }
+
+  .o-skeleton {
+    background: var(--color-surface);
+    border-radius: 26px;
+    animation: o-pulse 1.4s ease-in-out infinite;
+  }
 }
-.o-pill:disabled { opacity: 0.45; cursor: default; }
 
-/* Pill input. */
-.o-input {
-  min-height: 40px;
-  padding: 7px 18px;
-  font-size: 14px;
-  font-family: var(--font-body);
-  color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-divider);
-  border-radius: 999px;
+@keyframes o-spin { to { transform: rotate(360deg); } }
+@keyframes o-fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
 }
-.o-input::placeholder { color: color-mix(in srgb, var(--color-text) 45%, transparent); }
-/* On a surface-colored panel, swap the fill: .o-input { background: var(--color-bg) } */
-
-/* Content card. */
-.o-card {
-  background: var(--color-surface);
-  border-radius: 26px;
-  padding: var(--space-4);
-  box-shadow: var(--shadow-sm);
-}
-
-/* Small label pill. Compose with a tint pair:
-   bg-[--color-accent-2-100] text-[--color-accent-2-800]  (skill / equipment)
-   bg-[--color-accent-100]   text-[--color-accent-800]    (cuisine / diet) */
-.o-tag {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  padding: 3px 10px;
-  font-size: 11px;
-  line-height: 1.4;
-  white-space: nowrap;
-}
-
-/* Row rule used inside cards and tables. */
-.o-rule { border-bottom: 1px solid var(--color-rule); }
+@keyframes o-pulse { 50% { opacity: 0.5; } }

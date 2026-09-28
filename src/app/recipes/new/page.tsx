@@ -1,3 +1,4 @@
+import PageHeader from "@/components/PageHeader";
 import RecipeForm from "../RecipeForm";
 import { createRecipe, getIngredientLibrary } from "../actions";
 
@@ -11,7 +12,7 @@ export default async function NewRecipePage() {
   const libraryItems = await getIngredientLibrary();
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-[32px]">Add a recipe</h1>
+      <PageHeader back={{ href: "/recipes", label: "Recipes" }} title="Add a recipe" />
       <RecipeForm action={createRecipe} submitLabel="Save Recipe" libraryItems={libraryItems} />
     </div>
   );

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import PageHeader from "@/components/PageHeader";
 import RecipeForm from "../../RecipeForm";
 import { updateRecipe, getIngredientLibrary } from "../../actions";
 
@@ -23,10 +24,14 @@ export default async function EditRecipePage({
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-[32px]">Edit recipe</h1>
+      <PageHeader
+        back={{ href: `/recipes/${recipe.id}`, label: recipe.title }}
+        title="Edit recipe"
+      />
       <RecipeForm
         action={boundUpdate}
         submitLabel="Save Changes"
+        cancelHref={`/recipes/${recipe.id}`}
         libraryItems={libraryItems}
         initial={{
           title: recipe.title,

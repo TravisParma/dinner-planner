@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Caprasimo, Figtree } from "next/font/google";
 import Link from "next/link";
-import NavLinks from "./NavLinks";
+import { Utensils } from "lucide-react";
+import { BottomTabBar, TopNavLinks } from "./NavLinks";
 import "./globals.css";
 
 const heading = Caprasimo({
@@ -19,6 +20,17 @@ const body = Figtree({
 export const metadata: Metadata = {
   title: "Family Dinner Planner",
   description: "Plan dinners, save recipes, and generate grocery lists.",
+  appleWebApp: { capable: true, title: "Dinner", statusBarStyle: "default" },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f9f4ed" },
+    { media: "(prefers-color-scheme: dark)", color: "#211d19" },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -34,20 +46,24 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       }
     >
       <body className="min-h-full flex flex-col bg-bg text-text">
-        <header className="border-b border-divider bg-neutral-100">
+        <header className="o-glass sticky top-0 z-40 border-b border-divider">
           <nav
-            className="mx-auto flex max-w-[1200px] items-center justify-between"
-            style={{ padding: "13.2px 26.4px" }}
+            aria-label="Main"
+            className="mx-auto flex h-14 max-w-[1200px] items-center justify-between px-4 md:h-16 md:px-6"
           >
-            <Link href="/recipes" className="font-heading text-[19px]">
-              Dinner Planner
+            <Link href="/recipes" className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-on-accent">
+                <Utensils strokeWidth={2.75} size={16} />
+              </span>
+              <span className="font-heading text-[19px]">Dinner Planner</span>
             </Link>
-            <NavLinks />
+            <TopNavLinks />
           </nav>
         </header>
-        <main className="mx-auto w-full max-w-[1200px] flex-1 p-6">
+        <main className="app-main mx-auto w-full max-w-[1200px] flex-1 px-4 pt-5 md:px-6 md:pt-8">
           {children}
         </main>
+        <BottomTabBar />
       </body>
     </html>
   );

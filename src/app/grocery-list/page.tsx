@@ -1,8 +1,18 @@
 import Link from "next/link";
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  ShoppingBasket,
+  SlidersHorizontal,
+} from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { aggregateIngredients } from "@/lib/groceryList";
 import GroceryChecklist, { type ChecklistRow } from "./GroceryChecklist";
 import { addManualItem } from "./actions";
+import PageHeader from "@/components/PageHeader";
+import SubmitButton from "@/components/SubmitButton";
 
 function toDateStr(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -22,6 +32,9 @@ function addDays(date: Date, days: number): Date {
   result.setUTCDate(result.getUTCDate() + days);
   return result;
 }
+
+const shortDate = (d: Date) =>
+  d.toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
 
 export default async function GroceryListPage({
   searchParams,
@@ -74,86 +87,94 @@ export default async function GroceryListPage({
     })),
   ];
 
-  const gatheredCount = rows.filter((r) => r.checked).length;
-  const progressPct = rows.length > 0 ? Math.round((gatheredCount / rows.length) * 100) : 0;
 
   const boundAddManualItem = addManualItem.bind(null, rangeStart, rangeEnd);
+  const prevStart = toDateStr(addDays(startDate, -7));
+  const nextStart = toDateStr(addDays(startDate, 7));
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[32px]">Grocery list</h1>
-          <p className="text-[13px] opacity-60">
-            From {plannedMeals.length} dinners,{" "}
-            {startDate.toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" })} –{" "}
-            {endDate.toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" })}
-          </p>
-        </div>
-        <div className="flex flex-col items-end gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-sm">
-              {gatheredCount} of {rows.length} gathered
-            </span>
-            <div className="h-[8px] w-[180px] rounded-full bg-surface">
-              <div
-                className="h-[8px] rounded-full bg-accent-2-500"
-                style={{ width: `${progressPct}%` }}
-              />
+    <div className="mx-auto flex w-full max-w-[960px] flex-col gap-5 md:gap-6">
+      <PageHeader
+        title="Grocery list"
+        subtitle={`${plannedMeals.length} ${plannedMeals.length === 1 ? "dinner" : "dinners"} · ${shortDate(startDate)} – ${shortDate(endDate)}`}
+        actions={
+          <>
+            <div className="flex items-center rounded-full border border-divider bg-surface/60 p-1">
+              <Link
+                href={`/grocery-list?start=${prevStart}&days=${dayCount}`}
+                className="o-icon-btn h-9 w-9"
+                aria-label="Previous week"
+              >
+                <ChevronLeft strokeWidth={2.75} size={18} />
+              </Link>
+              <Link
+                href={`/planner?start=${rangeStart}&days=${dayCount}`}
+                className="flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm text-accent-700 hover:bg-surface"
+              >
+                <CalendarDays strokeWidth={2.5} size={14} />
+                Edit plan
+              </Link>
+              <Link
+                href={`/grocery-list?start=${nextStart}&days=${dayCount}`}
+                className="o-icon-btn h-9 w-9"
+                aria-label="Next week"
+              >
+                <ChevronRight strokeWidth={2.75} size={18} />
+              </Link>
             </div>
-          </div>
-          <Link
-            href={`/planner?start=${rangeStart}&days=${dayCount}`}
-            className="text-sm text-accent-700 hover:underline"
-          >
-            Edit this week&apos;s plan
-          </Link>
-        </div>
-      </div>
+          </>
+        }
+      />
 
-      <details className="text-sm opacity-70">
-        <summary className="cursor-pointer">Custom range</summary>
-        <form className="mt-2 flex flex-wrap items-end gap-3" method="get">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="start" className="text-xs font-medium">
-              Start date
-            </label>
-            <input
-              id="start"
-              name="start"
-              type="date"
-              defaultValue={rangeStart}
-              className="o-input"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="days" className="text-xs font-medium">
-              Days (1-7)
-            </label>
-            <input
-              id="days"
-              name="days"
-              type="number"
-              min={1}
-              max={7}
-              defaultValue={dayCount}
-              className="o-input w-20"
-            />
-          </div>
-          <button type="submit" className="o-pill border border-divider">
-            View
-          </button>
-        </form>
-      </details>
+      <form
+        action={boundAddManualItem}
+        className="flex items-center gap-1.5 rounded-full border border-divider bg-surface p-1.5 pl-4 shadow-sm focus-within:border-accent"
+      >
+        <Plus strokeWidth={2.75} size={16} className="shrink-0 opacity-50" />
+        <input
+          id="add-name"
+          name="name"
+          placeholder="Add an item (e.g. paper towels)"
+          aria-label="Item name"
+          required
+          autoComplete="off"
+          className="min-w-0 flex-1 bg-transparent py-2 text-[15px] outline-none placeholder:opacity-50"
+        />
+        <input
+          name="quantity"
+          placeholder="Qty"
+          aria-label="Quantity"
+          inputMode="decimal"
+          autoComplete="off"
+          className="w-12 min-w-0 rounded-full bg-bg px-2 py-2 text-center text-sm outline-none sm:w-16"
+        />
+        <input
+          name="unit"
+          placeholder="Unit"
+          aria-label="Unit"
+          autoComplete="off"
+          className="w-12 min-w-0 rounded-full bg-bg px-2 py-2 text-center text-sm outline-none sm:w-20"
+        />
+        <SubmitButton pendingLabel={null} className="o-pill o-primary shrink-0 px-4">
+          Add
+        </SubmitButton>
+      </form>
 
       {plannedMeals.length === 0 && generated.length === 0 && manualItems.length === 0 ? (
-        <p className="opacity-60">
-          No dinners planned for this range yet.{" "}
-          <Link href={`/planner?start=${rangeStart}&days=${dayCount}`} className="text-accent-700 hover:underline">
-            Plan some dinners
-          </Link>{" "}
-          to generate a list, or add items manually below.
-        </p>
+        <div className="o-card flex flex-col items-center gap-3 py-10 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-accent-2-100 text-accent-2-700">
+            <ShoppingBasket strokeWidth={2.5} size={22} />
+          </span>
+          <p className="font-heading text-[18px]">Nothing to buy yet</p>
+          <p className="max-w-sm text-sm opacity-65">
+            Plan some dinners for this week and their ingredients show up here automatically — or add
+            items above.
+          </p>
+          <Link href={`/planner?start=${rangeStart}&days=${dayCount}`} className="o-pill o-primary">
+            <CalendarDays strokeWidth={2.5} size={15} />
+            Plan dinners
+          </Link>
+        </div>
       ) : (
         <GroceryChecklist
           key={rows.map((r) => `${r.key}:${r.checked}`).join(",")}
@@ -163,37 +184,68 @@ export default async function GroceryListPage({
         />
       )}
 
-      <form action={boundAddManualItem} className="flex flex-wrap items-end gap-2">
-        <div className="flex flex-1 min-w-[200px] flex-col gap-1">
-          <label htmlFor="add-name" className="text-sm font-medium">
-            Add item
-          </label>
-          <input
-            id="add-name"
-            name="name"
-            placeholder="e.g. paper towels"
-            required
-            className="o-input w-full"
-          />
-        </div>
-        <input
-          name="quantity"
-          placeholder="Qty"
-          aria-label="Quantity"
-          className="o-input"
-          style={{ width: "80px" }}
-        />
-        <input
-          name="unit"
-          placeholder="Unit"
-          aria-label="Unit"
-          className="o-input"
-          style={{ width: "90px" }}
-        />
-        <button type="submit" className="o-pill bg-accent text-bg">
-          Add
-        </button>
-      </form>
+      {plannedMeals.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="px-1 text-[15px] opacity-70">For these dinners</h2>
+          <div className="o-scroll-x -mx-4 px-4 md:mx-0 md:px-0">
+            <div className="flex w-max gap-2 md:w-auto md:flex-wrap">
+              {[...plannedMeals]
+                .sort((a, b) => a.date.getTime() - b.date.getTime())
+                .map((m) => (
+                  <Link
+                    key={m.id}
+                    href={`/recipes/${m.recipeId}`}
+                    className="flex items-center gap-2 whitespace-nowrap rounded-full border border-divider px-3.5 py-2 text-sm hover:bg-surface"
+                  >
+                    <span className="text-xs font-semibold text-accent-700">
+                      {m.date.toLocaleDateString(undefined, { weekday: "short", timeZone: "UTC" })}
+                    </span>
+                    {m.recipe.title}
+                  </Link>
+                ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <details className="text-sm">
+        <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 rounded-full px-1 py-1 opacity-70 hover:opacity-100">
+          <SlidersHorizontal strokeWidth={2.5} size={14} />
+          Custom range
+        </summary>
+        <form className="o-card mt-2 flex flex-wrap items-end gap-3" method="get">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="start" className="text-xs font-semibold">
+              Start date
+            </label>
+            <input
+              id="start"
+              name="start"
+              type="date"
+              defaultValue={rangeStart}
+              className="o-input bg-bg"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="days" className="text-xs font-semibold">
+              Days (1-7)
+            </label>
+            <input
+              id="days"
+              name="days"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={7}
+              defaultValue={dayCount}
+              className="o-input w-24 bg-bg"
+            />
+          </div>
+          <button type="submit" className="o-pill o-quiet">
+            View
+          </button>
+        </form>
+      </details>
     </div>
   );
 }

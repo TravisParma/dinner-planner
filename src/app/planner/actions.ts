@@ -19,10 +19,12 @@ export async function setPlannedMeal(dateStr: string, formData: FormData) {
     create: { date, recipeId },
   });
   revalidatePath("/planner");
+  revalidatePath("/recipes/[id]", "page");
 }
 
 export async function clearPlannedMeal(dateStr: string) {
   const date = toMidnightUTC(dateStr);
   await prisma.plannedMeal.deleteMany({ where: { date } });
   revalidatePath("/planner");
+  revalidatePath("/recipes/[id]", "page");
 }
