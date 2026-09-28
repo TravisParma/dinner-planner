@@ -24,6 +24,19 @@ model Recipe {
   updatedAt        DateTime     @updatedAt
   ingredients      Ingredient[]
   plannedMeals     PlannedMeal[]
+  notes            RecipeNote[]
+}
+
+// Free-text household notes on a recipe (e.g. "Rose and Jake don't eat
+// drumsticks"). Many per recipe, shown newest first with their timestamp.
+model RecipeNote {
+  id        String   @id @default(cuid())
+  recipeId  String
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([recipeId])
 }
 
 model Ingredient {

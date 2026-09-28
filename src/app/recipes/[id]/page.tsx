@@ -1,12 +1,25 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, Check, Clock, ExternalLink, Pencil, Trash2, Users } from "lucide-react";
+import {
+  CalendarDays,
+  Check,
+  Clock,
+  ExternalLink,
+  NotebookPen,
+  Pencil,
+  Trash2,
+  Users,
+  X,
+} from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import PageHeader from "@/components/PageHeader";
 import SubmitButton from "@/components/SubmitButton";
+import LocalTime from "@/components/LocalTime";
 import { setPlannedMeal } from "../../planner/actions";
 import {
+  addRecipeNote,
   deleteRecipe,
+  deleteRecipeNote,
   markMadeToday,
   rateRecipe,
   toggleMakeAgain,
@@ -37,7 +50,10 @@ export default async function RecipeDetailPage({
   const { id } = await params;
   const recipe = await prisma.recipe.findUnique({
     where: { id },
-    include: { ingredients: { orderBy: { position: "asc" } } },
+    include: {
+      ingredients: { orderBy: { position: "asc" } },
+      notes: { orderBy: { createdAt: "desc" } },
+    },
   });
 
   if (!recipe) notFound();
@@ -71,6 +87,7 @@ export default async function RecipeDetailPage({
     recipe.makeAgain ?? false
   );
   const boundMarkMade = markMadeToday.bind(null, recipe.id);
+  const boundAddNote = addRecipeNote.bind(null, recipe.id);
 
   const skillList = parseTags(recipe.skillTags);
   const cuisineList = parseTags(recipe.cuisineTags);
@@ -159,7 +176,7 @@ export default async function RecipeDetailPage({
           past the whole recipe. */}
       <aside className="grid gap-3 sm:grid-cols-2 lg:sticky lg:top-24 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:grid-cols-1 lg:self-start">
         <div className="o-card flex flex-col gap-3">
-          <span className="o-kicker">Your notes</span>
+          <span className="o-kicker">Your take</span>
           <form action={boundRate} className="flex items-center justify-between gap-2">
             <span className="text-sm font-semibold">Rating</span>
             <div className="flex">
@@ -196,6 +213,56 @@ export default async function RecipeDetailPage({
               <SubmitButton className="o-pill o-quiet w-full px-3">Made today</SubmitButton>
             </form>
           </div>
+        </div>
+
+        <div className="o-card flex flex-col gap-3 sm:order-last sm:col-span-2 lg:order-none lg:col-span-1">
+          <div className="flex items-baseline justify-between">
+            <span className="o-kicker">Notes</span>
+            {recipe.notes.length > 0 && (
+              <span className="text-[12px] opacity-55">{recipe.notes.length}</span>
+            )}
+          </div>
+
+          {recipe.notes.length > 0 && (
+            <ul className="flex max-h-[320px] flex-col gap-2 overflow-y-auto">
+              {recipe.notes.map((note) => (
+                <li key={note.id} className="group flex items-start gap-2 rounded-[16px] bg-bg px-3.5 py-2.5">
+                  <div className="min-w-0 flex-1">
+                    <p className="whitespace-pre-wrap break-words text-[14px] leading-[1.45]">{note.body}</p>
+                    <p className="mt-1 text-[11px] opacity-55">
+                      <LocalTime iso={note.createdAt.toISOString()} />
+                    </p>
+                  </div>
+                  <form action={deleteRecipeNote.bind(null, recipe.id, note.id)}>
+                    <SubmitButton
+                      confirm="Delete this note?"
+                      pendingLabel={null}
+                      className="o-icon-btn -mr-2 -mt-1.5 h-8 w-8 opacity-40 hover:opacity-100"
+                      aria-label="Delete note"
+                    >
+                      <X strokeWidth={2.75} size={14} />
+                    </SubmitButton>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <form action={boundAddNote} className="flex flex-col gap-2">
+            <textarea
+              name="body"
+              required
+              rows={2}
+              maxLength={1000}
+              placeholder={recipe.notes.length ? "Add another note…" : "e.g. Rose and Jake don't eat drumsticks"}
+              aria-label="New note"
+              className="w-full resize-y rounded-[16px] border border-divider bg-bg px-3.5 py-2.5 text-[14px] leading-[1.45] placeholder:opacity-50 focus:border-accent"
+            />
+            <SubmitButton pendingLabel="Saving…" className="o-pill o-quiet self-end px-4 py-2 text-[13px]">
+              <NotebookPen strokeWidth={2.5} size={14} />
+              Add note
+            </SubmitButton>
+          </form>
         </div>
 
         <div className="o-card flex flex-col gap-3">

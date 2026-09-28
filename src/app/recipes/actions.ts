@@ -93,3 +93,20 @@ export async function markMadeToday(id: string) {
   revalidatePath("/recipes");
   revalidatePath(`/recipes/${id}`);
 }
+
+const MAX_NOTE_LENGTH = 1000;
+
+export async function addRecipeNote(recipeId: string, formData: FormData) {
+  const body = str(formData, "body")?.slice(0, MAX_NOTE_LENGTH);
+  if (!body) return;
+  await prisma.recipeNote.create({ data: { recipeId, body } });
+  revalidatePath("/recipes");
+  revalidatePath(`/recipes/${recipeId}`);
+}
+
+export async function deleteRecipeNote(recipeId: string, noteId: string) {
+  // Scoped by recipeId too, so a stale/forged noteId can't delete another recipe's note.
+  await prisma.recipeNote.deleteMany({ where: { id: noteId, recipeId } });
+  revalidatePath("/recipes");
+  revalidatePath(`/recipes/${recipeId}`);
+}

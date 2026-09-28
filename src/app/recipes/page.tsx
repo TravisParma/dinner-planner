@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChefHat, Clock, Plus, Repeat, Search, X } from "lucide-react";
+import { ChefHat, Clock, NotebookPen, Plus, Repeat, Search, X } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import PageHeader from "@/components/PageHeader";
 
@@ -62,7 +62,7 @@ export default async function RecipesPage({
       : "title";
 
   const recipes = await prisma.recipe.findMany({
-    include: { ingredients: true },
+    include: { ingredients: true, _count: { select: { notes: true } } },
   });
 
   const keyword = q?.trim().toLowerCase();
@@ -311,6 +311,15 @@ export default async function RecipesPage({
                       <span className="flex items-center gap-1">
                         <Clock strokeWidth={2.5} size={11} />
                         {totalMinutes} min
+                      </span>
+                    )}
+                    {recipe._count.notes > 0 && (
+                      <span
+                        className="flex items-center gap-1"
+                        title={`${recipe._count.notes} ${recipe._count.notes === 1 ? "note" : "notes"}`}
+                      >
+                        <NotebookPen strokeWidth={2.5} size={11} />
+                        {recipe._count.notes}
                       </span>
                     )}
                     {recipe.lastMadeAt && (
